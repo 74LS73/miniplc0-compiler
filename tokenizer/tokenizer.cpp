@@ -95,17 +95,33 @@ Tokenizer::nextToken() {
               break;
             case '-':
               // 请填空：切换到减号的状态
+              current_state = DFAState::MINUS_SIGN_STATE;
+              break;
             case '+':
               // 请填空：切换到加号的状态
+              current_state = DFAState::PLUS_SIGN_STATE;
+              break;
             case '*':
               // 请填空：切换状态
+              current_state = DFAState::MULTIPLICATION_SIGN_STATE;
+              break;
             case '/':
               // 请填空：切换状态
+              current_state = DFAState::DIVISION_SIGN_STATE;
+              break;
 
             ///// 请填空：
             ///// 对于其他的可接受字符
             ///// 切换到对应的状态
-
+            case '(':
+              current_state = DFAState::LEFTBRACKET_STATE;
+              break;
+            case ')':
+              current_state = DFAState::RIGHTBRACKET_STATE;
+              break;
+            case ';':
+              current_state = DFAState::SEMICOLON_STATE;
+              break;
             // 不接受的字符导致的不合法的状态
             default:
               invalid = true;
@@ -138,6 +154,30 @@ Tokenizer::nextToken() {
         // 如果读到的字符是数字，则存储读到的字符
         // 如果读到的字符不是数字，则回退读到的字符，并解析已经读到的字符串为整数
         //     解析成功则返回无符号整数类型的token，否则返回编译错误
+        
+        // 已经读到了文件尾
+        if (!current_char.has_value()){
+          std::string num;
+          ss >> num;
+        return std::make_pair(std::make_optional<Token>(TokenType::UNSIGNED_INTEGER,
+                                                      num, pos, currentPos()),
+                            std::optional<CompilationError>());
+        }
+        auto ch = current_char.value();
+
+        // 使用了自己封装的判断字符类型的函数，定义于 tokenizer/utils.hpp
+        // see https://en.cppreference.com/w/cpp/string/byte/isblank
+        if (miniplc0::isdigit(ch)) { // 读到的字符是数字
+          ss << ch;
+        }
+        else{
+          unreadLast();
+          std::string num;
+          ss >> num;
+          return std::make_pair(std::make_optional<Token>(TokenType::UNSIGNED_INTEGER,
+                                                        num, pos, currentPos()),
+                              std::optional<CompilationError>());
+        }
         break;
       }
       case IDENTIFIER_STATE: {
@@ -147,12 +187,34 @@ Tokenizer::nextToken() {
         // 如果读到的是字符或字母，则存储读到的字符
         // 如果读到的字符不是上述情况之一，则回退读到的字符，并解析已经读到的字符串
         //     如果解析结果是关键字，那么返回对应关键字的token，否则返回标识符的token
+        
+        // 已经读到了文件尾
+        if (!current_char.has_value()){
+          unreadLast();
+          return std::make_pair(std::optional<Token>(),
+                                std::make_optional<CompilationError>(
+                                    pos, ErrorCode::ErrEOF));
+        }
+        auto ch = current_char.value();
+
+        // 使用了自己封装的判断字符类型的函数，定义于 tokenizer/utils.hpp
+        // see https://en.cppreference.com/w/cpp/string/byte/isblank
+        if (miniplc0::isdigit(ch) || miniplc0::isalpha(ch)) { // 读到的字符是数字或字母
+          ss << ch;
+        }
+        else {
+          unreadLast();
+          std::string idt;
+          ss >> idt;
+          return std::make_pair(std::make_optional<Token>(verifyKeyword(idt),
+                                                      idt, pos, currentPos()),
+                              std::optional<CompilationError>());
+        }        
         break;
       }
 
         // 如果当前状态是加号
       case PLUS_SIGN_STATE: {
-        // 请思考这里为什么要回退，在其他地方会不会需要
         unreadLast();  // Yes, we unread last char even if it's an EOF.
         return std::make_pair(std::make_optional<Token>(TokenType::PLUS_SIGN,
                                                         '+', pos, currentPos()),
@@ -160,9 +222,56 @@ Tokenizer::nextToken() {
       }
         // 当前状态为减号的状态
       case MINUS_SIGN_STATE: {
-        // 请填空：回退，并返回减号token
+        // 回退，并返回减号token
+        unreadLast();  // Yes, we unread last char even if it's an EOF.
+        return std::make_pair(std::make_optional<Token>(TokenType::MINUS_SIGN,
+                                                        '-', pos, currentPos()),
+                              std::optional<CompilationError>());
       }
 
+      case MULTIPLICATION_SIGN_STATE: {
+        // 请填空：回退，并返回减号token
+        unreadLast();  // Yes, we unread last char even if it's an EOF.
+        return std::make_pair(std::make_optional<Token>(TokenType::MULTIPLICATION_SIGN,
+                                                        '*', pos, currentPos()),
+                              std::optional<CompilationError>());
+      }
+
+      case DIVISION_SIGN_STATE: {
+        // 请填空：回退，并返回减号token
+        unreadLast();  // Yes, we unread last char even if it's an EOF.
+        return std::make_pair(std::make_optional<Token>(TokenType::DIVISION_SIGN,
+                                                        '/', pos, currentPos()),
+                              std::optional<CompilationError>());
+      }
+
+      case EQUAL_SIGN_STATE: {
+        unreadLast();  // Yes, we unread last char even if it's an EOF.
+        return std::make_pair(std::make_optional<Token>(TokenType::EQUAL_SIGN,
+                                                        '=', pos, currentPos()),
+                              std::optional<CompilationError>());
+      }
+
+      case SEMICOLON_STATE: {
+        unreadLast();  // Yes, we unread last char even if it's an EOF.
+        return std::make_pair(std::make_optional<Token>(TokenType::SEMICOLON,
+                                                        ';', pos, currentPos()),
+                              std::optional<CompilationError>());
+      }
+
+      case LEFTBRACKET_STATE: {
+        unreadLast();  // Yes, we unread last char even if it's an EOF.
+        return std::make_pair(std::make_optional<Token>(TokenType::LEFT_BRACKET,
+                                                        '(', pos, currentPos()),
+                              std::optional<CompilationError>());
+      }
+
+      case RIGHTBRACKET_STATE: {
+        unreadLast();  // Yes, we unread last char even if it's an EOF.
+        return std::make_pair(std::make_optional<Token>(TokenType::RIGHT_BRACKET,
+                                                        ')', pos, currentPos()),
+                              std::optional<CompilationError>());
+      }
         // 请填空：
         // 对于其他的合法状态，进行合适的操作
         // 比如进行解析、返回token、返回编译错误
@@ -236,4 +345,13 @@ bool Tokenizer::isEOF() { return _ptr.first >= _lines_buffer.size(); }
 
 // Note: Is it evil to unread a buffer?
 void Tokenizer::unreadLast() { _ptr = previousPos(); }
+
+enum TokenType Tokenizer::verifyKeyword(std::string keyword) {
+  if (keyword == "begin") return TokenType::BEGIN;
+  if (keyword == "const") return TokenType::CONST;
+  if (keyword == "end") return TokenType::END;
+  if (keyword == "print") return TokenType::PRINT;
+  if (keyword == "var") return TokenType::VAR;
+  return TokenType::IDENTIFIER;
+}
 }  // namespace miniplc0

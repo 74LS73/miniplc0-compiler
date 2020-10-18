@@ -81,6 +81,7 @@ class Tokenizer final {
   std::optional<char> nextChar();
   bool isEOF();
   void unreadLast();
+  enum TokenType verifyKeyword(std::string keyword);
 
  private:
   std::istream &_rdr;

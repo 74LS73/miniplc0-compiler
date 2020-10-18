@@ -8,7 +8,7 @@
 
 // 下面是示例如何书写测试用例
 TEST_CASE("Test hello world.") {
-  /*
+  
   std::string input =
           "begin\n"
           "	var a = 1;\n"
@@ -24,5 +24,5 @@ TEST_CASE("Test hello world.") {
           FAIL();
   }
   REQUIRE( (result.first == output) );
-  */
+  
 }

@@ -175,7 +175,7 @@ Tokenizer::nextToken() {
           std::string num;
           ss >> num;
           return std::make_pair(std::make_optional<Token>(TokenType::UNSIGNED_INTEGER,
-                                                        num, pos, currentPos()),
+                                        num.substr(num.find_first_not_of('0')), pos, currentPos()),
                               std::optional<CompilationError>());
         }
         break;

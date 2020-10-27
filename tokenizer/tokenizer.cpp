@@ -174,8 +174,10 @@ Tokenizer::nextToken() {
           unreadLast();
           std::string num;
           ss >> num;
+          int first_non_zero = num.find_first_not_of('0');
+          if (first_non_zero == -1) first_non_zero = 0;
           return std::make_pair(std::make_optional<Token>(TokenType::UNSIGNED_INTEGER,
-                                        num.substr(num.find_first_not_of('0')), pos, currentPos()),
+                                        num.substr(first_non_zero), pos, currentPos()),
                               std::optional<CompilationError>());
         }
         break;

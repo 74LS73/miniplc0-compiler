@@ -447,7 +447,7 @@ std::optional<CompilationError> Analyser::analyseFactor() {
         return std::make_optional<CompilationError>(_current_pos,
                                                     ErrorCode::ErrIntegerOverflow);
       }
-      int val = prefix * atoi(num.c_str());
+      int val = atoi(num.c_str());
       _instructions.emplace_back(Operation::LIT, val);
       break;
     }

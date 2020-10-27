@@ -3,6 +3,9 @@
 #include <climits>
 
 namespace miniplc0 {
+
+bool isIntegerOverflow(std::string s, int prefix);
+
 std::pair<std::vector<Instruction>, std::optional<CompilationError>>
 Analyser::Analyse() {
   auto err = analyseProgram();
@@ -12,7 +15,7 @@ Analyser::Analyse() {
     return std::make_pair(_instructions, std::optional<CompilationError>());
 }
 
-// <程序> ::= 'begin'<主过程>'end'
+/* <程序> ::= 'begin'<主过程>'end' */
 std::optional<CompilationError> Analyser::analyseProgram() {
   // 示例函数，示例如何调用子程序
 
@@ -34,8 +37,9 @@ std::optional<CompilationError> Analyser::analyseProgram() {
   return {};
 }
 
-// <主过程> ::= <常量声明><变量声明><语句序列>
-// 需要补全
+/* <主过程> ::= <常量声明><变量声明><语句序列>
+   需要补全 
+*/
 std::optional<CompilationError> Analyser::analyseMain() {
   // 完全可以参照 <程序> 编写
   std::optional<miniplc0::CompilationError> err;
@@ -123,18 +127,28 @@ std::optional<CompilationError> Analyser::analyseVariableDeclaration() {
     if (!next.has_value() || next.value().GetType() != TokenType::IDENTIFIER)
       return std::make_optional<CompilationError>(_current_pos,
                                                   ErrorCode::ErrNeedIdentifier);  
-    if (isDeclared(next.value().GetValueString()))
-    return std::make_optional<CompilationError>(
-        _current_pos, ErrorCode::ErrDuplicateDeclaration);
-    addVariable(next.value());    
-    // 变量可能没有初始化，仍然需要一次预读
+    
+    auto ident =
+      /*标识符的 token*/ Token(next.value());
 
+    if (isDeclared(next.value().GetValueString()))
+      return std::make_optional<CompilationError>(
+          _current_pos, ErrorCode::ErrDuplicateDeclaration);
+
+
+    // 变量可能没有初始化，仍然需要一次预读
+    bool initialized = /*填写*/ false;
+    
     // '='
     next = nextToken();
     if (next.has_value() && next.value().GetType() == TokenType::EQUAL_SIGN){
       // '<表达式>'
       err = analyseExpression();
       if (err.has_value()) return err;
+      initialized = true;
+    }
+    else {
+      unreadToken();
     }
     
     // ';'
@@ -142,25 +156,36 @@ std::optional<CompilationError> Analyser::analyseVariableDeclaration() {
     if (!next.has_value() || next.value().GetType() != TokenType::SEMICOLON)
       return std::make_optional<CompilationError>(_current_pos,
                                                   ErrorCode::ErrNoSemicolon);
+   
+    
+    if (initialized) {
+      addVariable(ident);
+      // 已经初始化的变量的值的位置正好是之前表达式计算结果，所以不做处理
+    } else {
+      addUninitializedVariable(ident);
+      // 加载一个任意的初始值
+      _instructions.emplace_back(Operation::LIT, 0);
+    }
   }
   return {};
 }
 
-// <语句序列> ::= {<语句>}
-// <语句> :: = <赋值语句> | <输出语句> | <空语句>
-// <赋值语句> :: = <标识符>'='<表达式>';'
-// <输出语句> :: = 'print' '(' <表达式> ')' ';'
-// <空语句> :: = ';'
-// 需要补全
+/* <语句序列> ::= {<语句>}
+   <语句> :: = <赋值语句> | <输出语句> | <空语句>
+   <赋值语句> :: = <标识符>'='<表达式>';'
+   <输出语句> :: = 'print' '(' <表达式> ')' ';'
+   <空语句> :: = ';' 
+   需要补全 */
 std::optional<CompilationError> Analyser::analyseStatementSequence() {
   while (true) {
     // 预读
     auto next = nextToken();
     if (!next.has_value()) return {};
-    unreadToken();
+    // unreadToken();
     if (next.value().GetType() != TokenType::IDENTIFIER &&
         next.value().GetType() != TokenType::PRINT &&
         next.value().GetType() != TokenType::SEMICOLON) {
+      unreadToken();
       return {};
     }
     std::optional<CompilationError> err;
@@ -171,14 +196,15 @@ std::optional<CompilationError> Analyser::analyseStatementSequence() {
         break;
       }
       case TokenType::PRINT: {
+        unreadToken();
         err = analyseOutputStatement();
         break;
       }
       case TokenType::SEMICOLON: {
         break;
       }
-        // 这里需要你针对不同的预读结果来调用不同的子程序
-        // 注意我们没有针对空语句单独声明一个函数，因此可以直接在这里返回
+      // 这里需要你针对不同的预读结果来调用不同的子程序
+      // 注意我们没有针对空语句单独声明一个函数，因此可以直接在这里返回
       default:
         break;
     }
@@ -187,23 +213,24 @@ std::optional<CompilationError> Analyser::analyseStatementSequence() {
   return {};
 }
 
-// <常表达式> ::= [<符号>]<无符号整数>
-// 需要补全
+/* <常表达式> ::= [<符号>]<无符号整数>
+   需要补全
+*/
 std::optional<CompilationError> Analyser::analyseConstantExpression(
     int32_t &out) {
   
   std::optional<CompilationError> err;
   auto next = nextToken();
-  int sign;
+  int prefix;
   if (!next.has_value()) 
     return std::make_optional<CompilationError>(_current_pos,
                                                 ErrorCode::ErrConstantNeedValue);
   else if (next.value().GetType() == TokenType::PLUS_SIGN) {
-    sign = 1;
+    prefix = 1;
     next = nextToken();
   }
   else if (next.value().GetType() == TokenType::MINUS_SIGN) {
-    sign = -1;
+    prefix = -1;
     next = nextToken();
   }
   
@@ -213,13 +240,20 @@ std::optional<CompilationError> Analyser::analyseConstantExpression(
   }
 
   // TODO
-  std::string num = std::any_cast<std::string> (next.value().GetValue());
-  out = sign * atoi(num.c_str());
   // out 是常表达式的结果
   // 这里你要分析常表达式并且计算结果
   // 注意以下均为常表达式
   // +1 -1 1
   // 同时要注意是否溢出
+  std::string num = std::any_cast<std::string> (next.value().GetValue());
+
+  if (isIntegerOverflow(num, prefix)){
+    return std::make_optional<CompilationError>(_current_pos,
+                                                ErrorCode::ErrIntegerOverflow);
+  }
+
+  out = prefix * atoi(num.c_str());
+
   return {};
 }
 
@@ -270,10 +304,16 @@ std::optional<CompilationError> Analyser::analyseAssignmentStatement() {
                                             ErrorCode::ErrNotDeclared);
   }
   // 标识符是常量吗？
-  if (!isConstant(ident)) {
+  if (isConstant(ident)) {
     return std::make_optional<CompilationError>(_current_pos,
-                                            ErrorCode::ErrNotDeclared);
+                                            ErrorCode::ErrAssignToConstant);
   }
+
+    // 存储这个标识符
+  int32_t index = getIndex(ident);
+  _instructions.emplace_back(Operation::STO, index);
+  if (!isInitializedVariable(ident)) makeInitialized(ident);
+
   // TODO
   next = nextToken();
   if (next.value().GetType() != TokenType::EQUAL_SIGN) {
@@ -289,8 +329,7 @@ std::optional<CompilationError> Analyser::analyseAssignmentStatement() {
         return std::make_optional<CompilationError>(_current_pos,
                                             ErrorCode::ErrNoSemicolon);
   }
-  // 需要生成指令吗？
-  // _instructions.emplace_back(Operation::STO, 0);
+
   return {};
 }
 
@@ -299,7 +338,6 @@ std::optional<CompilationError> Analyser::analyseOutputStatement() {
   // 如果之前 <语句序列> 的实现正确，这里第一个 next 一定是 TokenType::PRINT
   auto next = nextToken();
 
-  // '('
   next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::LEFT_BRACKET)
     return std::make_optional<CompilationError>(_current_pos,
@@ -329,12 +367,37 @@ std::optional<CompilationError> Analyser::analyseOutputStatement() {
 // <项> :: = <因子>{ <乘法型运算符><因子> }
 // 需要补全
 std::optional<CompilationError> Analyser::analyseItem() {
-  // 可以参考 <表达式> 实现
-  auto err = analyseFactor();
+  // 可以参考 <表达式> 实现  
+  std::optional<miniplc0::CompilationError> err;
+  std::optional<miniplc0::Token> next;
+
+  // <因子>
+  err = analyseFactor();
   if (err.has_value()) return err;
 
+  // { <乘法型运算符><因子> }
   while (true) {
-    auto = 
+    // 预读
+    next = nextToken();
+
+    if (!next.has_value()) break;
+    
+    auto type = next.value().GetType();
+
+    if (type != TokenType::MULTIPLICATION_SIGN && type != TokenType::DIVISION_SIGN) {
+      unreadToken();
+      return {};
+    }
+
+    // <因子>
+    err = analyseFactor();
+    if (err.has_value()) return err;
+
+    // 根据结果生成指令
+    if (type == TokenType::MULTIPLICATION_SIGN)
+      _instructions.emplace_back(Operation::MUL, 0);
+    else if (type == TokenType::DIVISION_SIGN)
+      _instructions.emplace_back(Operation::DIV, 0);
   }
   return {};
 }
@@ -356,14 +419,49 @@ std::optional<CompilationError> Analyser::analyseFactor() {
   } else
     unreadToken();
 
+  std::optional<miniplc0::CompilationError> err;
+
   // 预读
   next = nextToken();
   if (!next.has_value())
     return std::make_optional<CompilationError>(
         _current_pos, ErrorCode::ErrIncompleteExpression);
   switch (next.value().GetType()) {
-      // 这里和 <语句序列> 类似，需要根据预读结果调用不同的子程序
-      // 但是要注意 default 返回的是一个编译错误
+    case TokenType::IDENTIFIER: {
+      // - 加载变量
+      auto ident = std::any_cast<std::string>(next.value().GetValue());
+      if (!isDeclared(ident))
+        return {CompilationError(_current_pos, ErrorCode::ErrNotDeclared)};
+      if (!isInitializedVariable(ident) && !isConstant(ident))
+        return {CompilationError(_current_pos,
+        ErrorCode::ErrNotInitialized)};
+      _instructions.emplace_back(Operation::LOD, getIndex(ident));
+      break;
+    }
+    case TokenType::UNSIGNED_INTEGER: {
+      // TODO
+      
+      std::string num = std::any_cast<std::string> (next.value().GetValue());
+
+      if (isIntegerOverflow(num, prefix)){
+        return std::make_optional<CompilationError>(_current_pos,
+                                                    ErrorCode::ErrIntegerOverflow);
+      }
+      int val = prefix * atoi(num.c_str());
+      _instructions.emplace_back(Operation::LIT, val);
+      break;
+    }
+    case TokenType::LEFT_BRACKET: {
+      err = analyseExpression();
+      if (!next.has_value()) return err;
+
+      next = nextToken();
+      if (next.value().GetType() != TokenType::RIGHT_BRACKET) {
+        return std::make_optional<CompilationError>(
+        _current_pos, ErrorCode::ErrIncompleteExpression);
+      }
+      break;
+    }
     default:
       return std::make_optional<CompilationError>(
           _current_pos, ErrorCode::ErrIncompleteExpression);
@@ -403,6 +501,14 @@ void Analyser::addUninitializedVariable(const Token &tk) {
   _add(tk, _uninitialized_vars);
 }
 
+void Analyser::makeInitialized(const std::string &var_name) {
+  auto var = _uninitialized_vars.find(var_name);
+  if (var == _uninitialized_vars.end())
+    DieAndPrint("Variable not found in uninitialized area. bad bad");
+  auto item = _uninitialized_vars.extract(var);
+  _vars.insert(std::move(item));
+}
+
 int32_t Analyser::getIndex(const std::string &s) {
   if (_uninitialized_vars.find(s) != _uninitialized_vars.end())
     return _uninitialized_vars[s];
@@ -427,4 +533,15 @@ bool Analyser::isInitializedVariable(const std::string &s) {
 bool Analyser::isConstant(const std::string &s) {
   return _consts.find(s) != _consts.end();
 }
+
+bool isIntegerOverflow(std::string s, int prefix) {
+  if (s.length() < 10) return false;
+  else if (s.length() > 10) return true;
+  else {
+    if (s > "2147483648") return true;
+    else if (s == "2147483648") return prefix != -1;
+    else return false;
+  }
+}
+
 }  // namespace miniplc0

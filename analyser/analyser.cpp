@@ -221,7 +221,7 @@ std::optional<CompilationError> Analyser::analyseConstantExpression(
   
   std::optional<CompilationError> err;
   auto next = nextToken();
-  int prefix;
+  int prefix = 1;
   if (!next.has_value()) 
     return std::make_optional<CompilationError>(_current_pos,
                                                 ErrorCode::ErrConstantNeedValue);

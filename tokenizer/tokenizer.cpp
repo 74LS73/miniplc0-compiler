@@ -349,11 +349,14 @@ bool Tokenizer::isEOF() { return _ptr.first >= _lines_buffer.size(); }
 void Tokenizer::unreadLast() { _ptr = previousPos(); }
 
 enum TokenType Tokenizer::verifyKeyword(std::string keyword) {
-  if (keyword == "begin") return TokenType::BEGIN;
+  if (keyword == "fn") return TokenType::FN;
+  if (keyword == "let") return TokenType::LET;
   if (keyword == "const") return TokenType::CONST;
-  if (keyword == "end") return TokenType::END;
-  if (keyword == "print") return TokenType::PRINT;
-  if (keyword == "var") return TokenType::VAR;
+  if (keyword == "as") return TokenType::AS;
+  if (keyword == "while") return TokenType::WHILE;
+  if (keyword == "if") return TokenType::IF;
+  if (keyword == "else") return TokenType::ELSE;
+  if (keyword == "return") return TokenType::RETURN;
   return TokenType::IDENTIFIER;
 }
 }  // namespace miniplc0

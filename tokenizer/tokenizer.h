@@ -48,9 +48,6 @@ class Tokenizer final {
  private:
   // 检查 Token 的合法性
   std::optional<CompilationError> checkToken(const Token &);
-  //
-  // ** 你需要完成这个函数 **
-  //
   // 返回下一个 token，是 NextToken 实际实现部分
   std::pair<std::optional<Token>, std::optional<CompilationError>> nextToken();
 

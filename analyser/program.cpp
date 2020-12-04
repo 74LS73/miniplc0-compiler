@@ -14,27 +14,21 @@ std::optional<CompilationError> Analyser::analyseProgram() {
     } else if (next.value().GetType() == TokenType::FN) {
       unreadToken();
 
-      auto item = FunctionItem();
-      err = analyseFunction(item);
+      err = analyseFunction();
       if (err.has_value()) return err;
 
-      declareFunction(next.value(), item);
     } else if (next.value().GetType() == TokenType::LET) {
       unreadToken();
 
-      auto item = VariableItem();
-      err = analyseDeclVariableStatement(item);
+      err = analyseDeclVariableStatement();
       if (err.has_value()) return err;
 
-      declareVariable(next.value(), item);
     } else if (next.value().GetType() == TokenType::CONST) {
       unreadToken();
 
-      auto item = VariableItem();
-      err = analyseDeclConstStatement(item);
+      err = analyseDeclConstStatement();
       if (err.has_value()) return err;
 
-      declareVariable(next.value(), item);
     } else {
       unreadToken();
       return std::make_optional<CompilationError>(_current_pos,

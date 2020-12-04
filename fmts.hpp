@@ -23,6 +23,9 @@ struct formatter<miniplc0::ErrorCode> {
       case miniplc0::ErrEOF:
         name = "EOF";
         break;
+      case miniplc0::ErrCompiler:
+        name = "编译错误。";
+        break;
       case miniplc0::ErrInvalidInput:
         name = "The input is invalid.";
         break;
@@ -35,8 +38,32 @@ struct formatter<miniplc0::ErrorCode> {
       case miniplc0::ErrNeedIdentifier:
         name = "Need an identifier here.";
         break;
+      case miniplc0::ErrNeedSemicolon:
+        name = "Need a semicolon here.";
+        break;
+      case miniplc0::ErrNeedColon:
+        name = "Need a colon here.";
+        break;
+      case miniplc0::ErrNeedDeclareSymbol:
+        name = "Need a declare symbol here.";
+        break;
+      case miniplc0::ErrNeedReturn:
+        name = "Need a return here.";
+        break;
+      case miniplc0::ErrNeedBracket:
+        name = "Need a bracket here.";
+        break;
+      case miniplc0::ErrNeedBrace:
+        name = "Need a brace here.";
+        break;
+      case miniplc0::ErrNeedType:
+        name = "Need a type here.";
+        break;
+      case miniplc0::ErrNeedArrow:
+        name = "Need an arrow here.";
+        break;
       case miniplc0::ErrConstantNeedValue:
-        name = "The constant need a value to initialize.";
+        name = "Const variable need an value here.";
         break;
       case miniplc0::ErrInvalidVariableDeclaration:
         name = "The declaration is invalid.";
@@ -61,6 +88,9 @@ struct formatter<miniplc0::ErrorCode> {
         break;
       case miniplc0::ErrInvalidPrint:
         name = "The output statement is invalid.";
+        break;
+      case miniplc0::ErrRecognized:
+        name = "The token is recognized.";
         break;
     }
     return format_to(ctx.out(), name);

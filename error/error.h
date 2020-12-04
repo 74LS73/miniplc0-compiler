@@ -34,6 +34,7 @@ enum ErrorCode {
   ErrNeedBracket,
   ErrNeedBrace,
   ErrNeedType,
+  ErrNeedArrow,
   ErrConstantNeedValue,
   ErrInvalidVariableDeclaration,
   ErrIncompleteExpression,

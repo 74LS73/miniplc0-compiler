@@ -7,6 +7,8 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <map>
+#include <functional>
 
 #include "error/error.h"
 #include "tokenizer/token.h"
@@ -17,22 +19,43 @@ namespace miniplc0 {
 class Tokenizer final {
  private:
   using uint64_t = std::uint64_t;
-
+  class DfaStateMachine;
   // 状态机的所有状态
   enum DFAState {
     INITIAL_STATE,
     UNSIGNED_INTEGER_STATE,
+    UNSIGNED_DOUBLE_STATE,
+    SCIENCE_DOUBLE_STATE,
     PLUS_SIGN_STATE,
     MINUS_SIGN_STATE,
-    DIVISION_SIGN_STATE,
-    MULTIPLICATION_SIGN_STATE,
+    DIV_SIGN_STATE,
+    MULT_SIGN_STATE,
     IDENTIFIER_STATE,
-    EQUAL_SIGN_STATE,
-    SEMICOLON_STATE,
-    LEFTBRACKET_STATE,
-    RIGHTBRACKET_STATE
+    ASSIGN_STATE,
+    EQUAL_STATE,
+    NO_EQUAL_STATE,
+    LESS_SIGN_STATE,  
+    GREATER_SIGN_STATE,
+    LESS_EQUAL_STATE,
+    GREATER_EQUAL_STATE,
+    LEFT_BRACKET_STATE,
+    RIGHT_BRACKET_STATE,
+    LEFT_BRACE_STATE,
+    RIGHT_BRACE_STATE,
+    ARROW_STATE,
+    COMMA_STATE,
+    COLON_STATE,
+    SEMICOLON_STATE
   };
 
+  std::map<std::pair<DFAState, char>, DFAState> dfaStateMachine = std::map<std::pair<DFAState, char>, DFAState>();
+  std::map<DFAState, TokenType> StateToTokenType = std::map<DFAState, TokenType>();
+  template<typename T> std::pair<void, std::optional<CompilationError>> addDfaEdge(DFAState before, T charSet, DFAState after);
+  std::pair<void, std::optional<CompilationError>> initDfaStateMachine();
+  std::pair<void, std::optional<CompilationError>> initStateToTokenType();
+  std::pair<DFAState, std::optional<CompilationError>> nextState(DFAState &current_state, char c);
+  
+  
  public:
   Tokenizer(std::istream &ifs)
       : _rdr(ifs), _initialized(false), _ptr(0, 0), _lines_buffer() {}

@@ -10,43 +10,51 @@ namespace miniplc0 {
 
 enum TokenType {
   NULL_TOKEN,
-  UNSIGNED_INTEGER,              // [0-9]+
-  UNSIGNED_DOUBLE,               // []
-  CHAR_LITERAL,                  // 
-  IDENTIFIER,                    // [_a-zA-Z] [_a-zA-Z0-9]*
-  STRING_LITERAL,                // "  "
-  
-  COMMENT,                       // //.*\n
+  UNSIGNED_INTEGER,  // digit+
+  UNSIGNED_DOUBLE,   // digit+ '.' digit+
+  SCIENCE_DOUBLE,    // digit+ '.' digit+ ([eE] [+-]? digit+)?
+  CHAR_LITERAL,      //
+  IDENTIFIER,        // [_a-zA-Z] [_a-zA-Z0-9]*
+  STRING_LITERAL,    // "  "
+
+  COMMENT,  // //.*\n
 
   /* keyword */
-  FN,                            // fn
-  LET,                           // let
-  CONST,                         // const
-  AS,                            // as
-  WHILE,                         // while
-  IF,                            // if
-  ELSE,                          // else
-  RETURN,                        // return
-  
+  TYPE,      // 待定
+  INT,       // int
+  VOID,      // void
+  DOUBLE,    // double
+  FN,        // fn
+  LET,       // let
+  CONST,     // const
+  AS,        // as
+  WHILE,     // while
+  IF,        // if
+  ELSE,      // else
+  BREAK,     // break
+  CONTINUE,  // continue
+  RETURN,    // return
+
   /*  */
-  PLUS_SIGN,                     // +
-  MINUS_SIGN,                    // -
-  MULTIPLICATION_SIGN,           // *
-  DIVISION_SIGN,                 // /
-  ASSIGN,                        // =
-  EQUAL_SIGN,                    // ==
-  NO_EQUAL_SIGN,                 // !=
-  LESS_SIGN,                     // <
-  GREATER_SIGN,                  // >
-  LESS_EUQAL_SIGN,               // <=
-  GREAT_EUQAL,                   // >=
-  LEFT_BRACKET,                  // (
-  RIGHT_BRACKET,                 // )
-  LEFT_BRACE,                    // {
-  RIGHT_BRACE,                   // }
-  ARROW,                         // ->
-  COMMA,                         // ,
-  SEMICOLON                      // ;
+  PLUS_SIGN,      // +
+  MINUS_SIGN,     // -
+  MULT_SIGN,      // *
+  DIV_SIGN,       // /
+  ASSIGN,         // =
+  EQUAL,          // ==
+  NO_EQUAL,       // !=
+  LESS_SIGN,      // <
+  GREATER_SIGN,   // >
+  LESS_EQUAL,     // <=
+  GREATER_EQUAL,  // >=
+  LEFT_BRACKET,   // (
+  RIGHT_BRACKET,  // )
+  LEFT_BRACE,     // {
+  RIGHT_BRACE,    // }
+  ARROW,          // ->
+  COMMA,          // ,
+  COLON,          // :
+  SEMICOLON       // ;
 };
 
 class Token final {

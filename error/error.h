@@ -22,14 +22,19 @@ enum ErrorCode {
   ErrNoError,  // Should be only used internally.
   ErrStreamError,
   ErrEOF,
+  ErrCompiler,
   ErrInvalidInput,
   ErrInvalidIdentifier,
   ErrIntegerOverflow,  // int32_t overflow.
-  ErrNoBegin,
-  ErrNoEnd,
   ErrNeedIdentifier,
+  ErrNeedSemicolon,
+  ErrNeedColon,
+  ErrNeedDeclareSymbol,
+  ErrNeedReturn,
+  ErrNeedBracket,
+  ErrNeedBrace,
+  ErrNeedType,
   ErrConstantNeedValue,
-  ErrNoSemicolon,
   ErrInvalidVariableDeclaration,
   ErrIncompleteExpression,
   ErrNotDeclared,
@@ -37,7 +42,8 @@ enum ErrorCode {
   ErrDuplicateDeclaration,
   ErrNotInitialized,
   ErrInvalidAssignment,
-  ErrInvalidPrint
+  ErrInvalidPrint,
+  ErrRecognized
 };
 
 class CompilationError final {

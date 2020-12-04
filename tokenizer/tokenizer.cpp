@@ -49,6 +49,8 @@ Tokenizer::nextToken() {
   std::pair<int64_t, int64_t> pos;
   // 记录当前自动机的状态，进入此函数时是初始状态
   DFAState current_state = DFAState::INITIAL_STATE;
+  DFAState next_state;
+
   // 这是一个死循环，除非主动跳出
   // 每一次执行while内的代码，都可能导致状态的变更
   while (true) {
@@ -57,232 +59,59 @@ Tokenizer::nextToken() {
     // 1. 每次循环前立即读入一个 char
     // 2. 只有在可能会转移的状态读入一个 char
     // 因为我们实现了 unread，为了省事我们选择第一种
+
     auto current_char = nextChar();
-    // 针对当前的状态进行不同的操作
-    switch (current_state) {
-        // 初始状态
-        // 这个 case 我们给出了核心逻辑，但是后面的 case 不用照搬。
-      case INITIAL_STATE: {
-        // 已经读到了文件尾
-        if (!current_char.has_value())
-          // 返回一个空的token，和编译错误ErrEOF：遇到了文件尾
-          return std::make_pair(
-              std::optional<Token>(),
-              std::make_optional<CompilationError>(0, 0, ErrEOF));
+    char ch = current_char.value();
 
-        // 获取读到的字符的值，注意auto推导出的类型是char
-        auto ch = current_char.value();
-        // 标记是否读到了不合法的字符，初始化为否
-        auto invalid = false;
+    // TODO：遇到了文件尾：返回一个空的token，和编译错误ErrEOF
+    // if (!current_char.has_value())
+    //   return std::make_pair(
+    //       std::optional<Token>(),
+    //       std::make_optional<CompilationError>(0, 0, ErrEOF));
 
-        // 使用了自己封装的判断字符类型的函数，定义于 tokenizer/utils.hpp
-        // see https://en.cppreference.com/w/cpp/string/byte/isblank
-        if (miniplc0::isspace(
-                ch))  // 读到的字符是空白字符（空格、换行、制表符等）
-          current_state = DFAState::
-              INITIAL_STATE;  // 保留当前状态为初始状态，此处直接break也是可以的
-        else if (!miniplc0::isprint(ch))  // control codes and backspace
-          invalid = true;
-        else if (miniplc0::isdigit(ch))  // 读到的字符是数字
-          current_state =
-              DFAState::UNSIGNED_INTEGER_STATE;  // 切换到无符号整数的状态
-        else if (miniplc0::isalpha(ch))  // 读到的字符是英文字母
-          current_state = DFAState::IDENTIFIER_STATE;  // 切换到标识符的状态
-        else {
-          switch (ch) {
-            case '=':  // 如果读到的字符是`=`，则切换到等于号的状态
-              current_state = DFAState::EQUAL_SIGN_STATE;
-              break;
-            case '-':
-              // 请填空：切换到减号的状态
-              current_state = DFAState::MINUS_SIGN_STATE;
-              break;
-            case '+':
-              // 请填空：切换到加号的状态
-              current_state = DFAState::PLUS_SIGN_STATE;
-              break;
-            case '*':
-              // 请填空：切换状态
-              current_state = DFAState::MULTIPLICATION_SIGN_STATE;
-              break;
-            case '/':
-              // 请填空：切换状态
-              current_state = DFAState::DIVISION_SIGN_STATE;
-              break;
-
-            ///// 请填空：
-            ///// 对于其他的可接受字符
-            ///// 切换到对应的状态
-            case '(':
-              current_state = DFAState::LEFTBRACKET_STATE;
-              break;
-            case ')':
-              current_state = DFAState::RIGHTBRACKET_STATE;
-              break;
-            case ';':
-              current_state = DFAState::SEMICOLON_STATE;
-              break;
-            // 不接受的字符导致的不合法的状态
-            default:
-              invalid = true;
-              break;
-          }
-        }
-        // 如果读到的字符导致了状态的转移，说明它是一个token的第一个字符
-        if (current_state != DFAState::INITIAL_STATE)
-          pos = previousPos();  // 记录该字符的的位置为token的开始位置
-        // 读到了不合法的字符
-        if (invalid) {
-          // 回退这个字符
-          unreadLast();
-          // 返回编译错误：非法的输入
-          return std::make_pair(std::optional<Token>(),
-                                std::make_optional<CompilationError>(
-                                    pos, ErrorCode::ErrInvalidInput));
-        }
-        // 如果读到的字符导致了状态的转移，说明它是一个token的第一个字符
-        if (current_state != DFAState::INITIAL_STATE)  // ignore white spaces
-          ss << ch;                                    // 存储读到的字符
-        break;
-      }
-
-        // 当前状态是无符号整数
-      case UNSIGNED_INTEGER_STATE: {
-        // 请填空：
-        // 如果当前已经读到了文件尾，则解析已经读到的字符串为整数
-        //     解析成功则返回无符号整数类型的token，否则返回编译错误
-        // 如果读到的字符是数字，则存储读到的字符
-        // 如果读到的字符不是数字，则回退读到的字符，并解析已经读到的字符串为整数
-        //     解析成功则返回无符号整数类型的token，否则返回编译错误
-        
-        // 已经读到了文件尾
-        if (!current_char.has_value()){
-          std::string num;
-          ss >> num;
-        return std::make_pair(std::make_optional<Token>(TokenType::UNSIGNED_INTEGER,
-                                                      num, pos, currentPos()),
-                            std::optional<CompilationError>());
-        }
-        auto ch = current_char.value();
-
-        // 使用了自己封装的判断字符类型的函数，定义于 tokenizer/utils.hpp
-        // see https://en.cppreference.com/w/cpp/string/byte/isblank
-        if (miniplc0::isdigit(ch)) { // 读到的字符是数字
-          ss << ch;
-        }
-        else{
-          unreadLast();
-          std::string num;
-          ss >> num;
-          int first_non_zero = num.find_first_not_of('0');
-          if (first_non_zero == -1) first_non_zero = 0;
-          return std::make_pair(std::make_optional<Token>(TokenType::UNSIGNED_INTEGER,
-                                        num.substr(first_non_zero), pos, currentPos()),
-                              std::optional<CompilationError>());
-        }
-        break;
-      }
-      case IDENTIFIER_STATE: {
-        // 请填空：
-        // 如果当前已经读到了文件尾，则解析已经读到的字符串
-        //     如果解析结果是关键字，那么返回对应关键字的token，否则返回标识符的token
-        // 如果读到的是字符或字母，则存储读到的字符
-        // 如果读到的字符不是上述情况之一，则回退读到的字符，并解析已经读到的字符串
-        //     如果解析结果是关键字，那么返回对应关键字的token，否则返回标识符的token
-        
-        // 已经读到了文件尾
-        if (!current_char.has_value()){
-          unreadLast();
-          return std::make_pair(std::optional<Token>(),
-                                std::make_optional<CompilationError>(
-                                    pos, ErrorCode::ErrEOF));
-        }
-        auto ch = current_char.value();
-
-        // 使用了自己封装的判断字符类型的函数，定义于 tokenizer/utils.hpp
-        // see https://en.cppreference.com/w/cpp/string/byte/isblank
-        if (miniplc0::isdigit(ch) || miniplc0::isalpha(ch)) { // 读到的字符是数字或字母
-          ss << ch;
-        }
-        else {
-          unreadLast();
-          std::string idt;
-          ss >> idt;
-          return std::make_pair(std::make_optional<Token>(verifyKeyword(idt),
-                                                      idt, pos, currentPos()),
-                              std::optional<CompilationError>());
-        }        
-        break;
-      }
-
-        // 如果当前状态是加号
-      case PLUS_SIGN_STATE: {
-        unreadLast();  // Yes, we unread last char even if it's an EOF.
-        return std::make_pair(std::make_optional<Token>(TokenType::PLUS_SIGN,
-                                                        '+', pos, currentPos()),
-                              std::optional<CompilationError>());
-      }
-        // 当前状态为减号的状态
-      case MINUS_SIGN_STATE: {
-        // 回退，并返回减号token
-        unreadLast();  // Yes, we unread last char even if it's an EOF.
-        return std::make_pair(std::make_optional<Token>(TokenType::MINUS_SIGN,
-                                                        '-', pos, currentPos()),
-                              std::optional<CompilationError>());
-      }
-
-      case MULTIPLICATION_SIGN_STATE: {
-        // 请填空：回退，并返回减号token
-        unreadLast();  // Yes, we unread last char even if it's an EOF.
-        return std::make_pair(std::make_optional<Token>(TokenType::MULTIPLICATION_SIGN,
-                                                        '*', pos, currentPos()),
-                              std::optional<CompilationError>());
-      }
-
-      case DIVISION_SIGN_STATE: {
-        // 请填空：回退，并返回减号token
-        unreadLast();  // Yes, we unread last char even if it's an EOF.
-        return std::make_pair(std::make_optional<Token>(TokenType::DIVISION_SIGN,
-                                                        '/', pos, currentPos()),
-                              std::optional<CompilationError>());
-      }
-
-      case EQUAL_SIGN_STATE: {
-        unreadLast();  // Yes, we unread last char even if it's an EOF.
-        return std::make_pair(std::make_optional<Token>(TokenType::EQUAL_SIGN,
-                                                        '=', pos, currentPos()),
-                              std::optional<CompilationError>());
-      }
-
-      case SEMICOLON_STATE: {
-        unreadLast();  // Yes, we unread last char even if it's an EOF.
-        return std::make_pair(std::make_optional<Token>(TokenType::SEMICOLON,
-                                                        ';', pos, currentPos()),
-                              std::optional<CompilationError>());
-      }
-
-      case LEFTBRACKET_STATE: {
-        unreadLast();  // Yes, we unread last char even if it's an EOF.
-        return std::make_pair(std::make_optional<Token>(TokenType::LEFT_BRACKET,
-                                                        '(', pos, currentPos()),
-                              std::optional<CompilationError>());
-      }
-
-      case RIGHTBRACKET_STATE: {
-        unreadLast();  // Yes, we unread last char even if it's an EOF.
-        return std::make_pair(std::make_optional<Token>(TokenType::RIGHT_BRACKET,
-                                                        ')', pos, currentPos()),
-                              std::optional<CompilationError>());
-      }
-        // 请填空：
-        // 对于其他的合法状态，进行合适的操作
-        // 比如进行解析、返回token、返回编译错误
-
-        // 预料之外的状态，如果执行到了这里，说明程序异常
-      default:
-        DieAndPrint("unhandled state.");
-        break;
+    // 首先排除不允许出现的字符，直接报错
+    if (!miniplc0::isprint(ch)) {  // control codes and backspace
+      unreadLast();
+      return std::make_pair(std::optional<Token>(),
+                            std::make_optional<CompilationError>(
+                                pos, ErrorCode::ErrInvalidInput));
     }
+
+    // TODO : 错误处理
+    next_state = nextState(current_state, ch).first;
+
+    // 如果发生了从INITIAL到其他状态的转换
+    // ss接受字符
+    if (current_state == DFAState::INITIAL_STATE &&
+        next_state != DFAState::INITIAL_STATE) {
+      ss << ch;
+    }
+
+    // 任何一个状态结束后都会重新返回到初始状态
+    // 如果返回到初始状态，说明已经处理完了一个Token
+    // 故可以返回结果
+    else if (next_state == DFAState::INITIAL_STATE &&
+             current_state != DFAState::INITIAL_STATE) {
+      unreadLast();
+      std::string stoken;
+      ss >> stoken;
+      auto tokentype = StateToTokenType[next_state];
+      // 特判标识符
+      if (current_state == DFAState::IDENTIFIER_STATE) {
+        tokentype = verifyKeyword(stoken);
+      }
+      return std::make_pair(
+          std::make_optional<Token>(tokentype, stoken, pos, currentPos()),
+          std::optional<CompilationError>());
+    }
+
+    current_state = next_state;
+
+    // switch (current_state) {
+    //   default:
+    //     DieAndPrint("unhandled state.");
+    //     break;
+    // }
   }
   // 预料之外的状态，如果执行到了这里，说明程序异常
   return std::make_pair(std::optional<Token>(),
@@ -349,6 +178,9 @@ bool Tokenizer::isEOF() { return _ptr.first >= _lines_buffer.size(); }
 void Tokenizer::unreadLast() { _ptr = previousPos(); }
 
 enum TokenType Tokenizer::verifyKeyword(std::string keyword) {
+  if (keyword == "int") return TokenType::INT;
+  if (keyword == "double") return TokenType::DOUBLE;
+  if (keyword == "void") return TokenType::VOID;
   if (keyword == "fn") return TokenType::FN;
   if (keyword == "let") return TokenType::LET;
   if (keyword == "const") return TokenType::CONST;
@@ -356,7 +188,101 @@ enum TokenType Tokenizer::verifyKeyword(std::string keyword) {
   if (keyword == "while") return TokenType::WHILE;
   if (keyword == "if") return TokenType::IF;
   if (keyword == "else") return TokenType::ELSE;
+  if (keyword == "break") return TokenType::BREAK;
+  if (keyword == "continue") return TokenType::CONTINUE;
   if (keyword == "return") return TokenType::RETURN;
   return TokenType::IDENTIFIER;
+}
+
+std::pair<Tokenizer::DFAState, std::optional<CompilationError>>
+Tokenizer::nextState(DFAState& current_state, char c) {
+  auto next_state = this->dfaStateMachine[{current_state, c}];
+  return std::make_pair(next_state, std::optional<CompilationError>());
+}
+
+template <typename T>
+std::pair<void, std::optional<CompilationError>> Tokenizer::addDfaEdge(
+    enum DFAState before, T charSet, enum DFAState after) {
+  for (auto& c : charSet) dfaStateMachine.insert({{before, c}, after});
+}
+
+std::pair<void, std::optional<CompilationError>>
+Tokenizer::initDfaStateMachine() {
+  // INITIAL_STATE
+  addDfaEdge(DFAState::INITIAL_STATE, "=", DFAState::ASSIGN_STATE);
+  addDfaEdge(DFAState::INITIAL_STATE, "-", DFAState::MINUS_SIGN_STATE);
+  addDfaEdge(DFAState::INITIAL_STATE, "+", DFAState::PLUS_SIGN_STATE);
+  addDfaEdge(DFAState::INITIAL_STATE, "*", DFAState::MULT_SIGN_STATE);
+  addDfaEdge(DFAState::INITIAL_STATE, "/", DFAState::DIV_SIGN_STATE);
+  addDfaEdge(DFAState::INITIAL_STATE, "(", DFAState::LEFT_BRACKET_STATE);
+  addDfaEdge(DFAState::INITIAL_STATE, ")", DFAState::RIGHT_BRACKET_STATE);
+  addDfaEdge(DFAState::INITIAL_STATE, "{", DFAState::LEFT_BRACE_STATE);
+  addDfaEdge(DFAState::INITIAL_STATE, "}", DFAState::RIGHT_BRACE_STATE);
+  addDfaEdge(DFAState::INITIAL_STATE, ":", DFAState::COLON_STATE);
+  addDfaEdge(DFAState::INITIAL_STATE, ";", DFAState::SEMICOLON_STATE);
+  addDfaEdge(DFAState::INITIAL_STATE, ",", DFAState::COMMA_STATE);
+  addDfaEdge(DFAState::INITIAL_STATE, "<", DFAState::LESS_SIGN_STATE);
+  addDfaEdge(DFAState::INITIAL_STATE, ">", DFAState::GREATER_SIGN_STATE);
+
+  addDfaEdge(DFAState::INITIAL_STATE, "!", DFAState::NO_EQUAL_STATE);
+  addDfaEdge(DFAState::NO_EQUAL_STATE, "=", DFAState::NO_EQUAL_STATE);
+
+  addDfaEdge(DFAState::ASSIGN_STATE, "=", DFAState::EQUAL_STATE);
+
+  addDfaEdge(DFAState::LESS_SIGN_STATE, "=", DFAState::LESS_EQUAL_STATE);
+
+  addDfaEdge(DFAState::GREATER_SIGN_STATE, "=", DFAState::GREATER_EQUAL_STATE);
+
+  addDfaEdge(DFAState::MINUS_SIGN_STATE, ">", DFAState::ARROW_STATE);
+
+  addDfaEdge(DFAState::INITIAL_STATE,
+             "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+             DFAState::IDENTIFIER_STATE);
+  addDfaEdge(DFAState::IDENTIFIER_STATE,
+             "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+             DFAState::IDENTIFIER_STATE);
+
+  addDfaEdge(DFAState::INITIAL_STATE, "0123456789",
+             DFAState::UNSIGNED_INTEGER_STATE);
+  addDfaEdge(DFAState::UNSIGNED_INTEGER_STATE, "0123456789",
+             DFAState::UNSIGNED_INTEGER_STATE);
+
+  addDfaEdge(DFAState::UNSIGNED_INTEGER_STATE, ".",
+             DFAState::UNSIGNED_DOUBLE_STATE);
+  addDfaEdge(DFAState::UNSIGNED_DOUBLE_STATE, "0123456789",
+             DFAState::UNSIGNED_DOUBLE_STATE);
+}
+
+std::pair<void, std::optional<CompilationError>>
+Tokenizer::initStateToTokenType() {
+  StateToTokenType.insert(
+      {DFAState::UNSIGNED_INTEGER_STATE, TokenType::UNSIGNED_INTEGER});
+  StateToTokenType.insert(
+      {DFAState::UNSIGNED_DOUBLE_STATE, TokenType::UNSIGNED_DOUBLE});
+  StateToTokenType.insert({DFAState::PLUS_SIGN_STATE, TokenType::PLUS_SIGN});
+  StateToTokenType.insert({DFAState::MINUS_SIGN_STATE, TokenType::MINUS_SIGN});
+  StateToTokenType.insert({DFAState::DIV_SIGN_STATE, TokenType::DIV_SIGN});
+  StateToTokenType.insert({DFAState::MULT_SIGN_STATE, TokenType::MULT_SIGN});
+  StateToTokenType.insert({DFAState::IDENTIFIER_STATE, TokenType::IDENTIFIER});
+  StateToTokenType.insert({DFAState::ASSIGN_STATE, TokenType::ASSIGN});
+  StateToTokenType.insert({DFAState::EQUAL_STATE, TokenType::EQUAL});
+  StateToTokenType.insert({DFAState::NO_EQUAL_STATE, TokenType::NO_EQUAL});
+  StateToTokenType.insert({DFAState::LESS_SIGN_STATE, TokenType::LESS_SIGN});
+  StateToTokenType.insert(
+      {DFAState::GREATER_SIGN_STATE, TokenType::GREATER_SIGN});
+  StateToTokenType.insert({DFAState::LESS_EQUAL_STATE, TokenType::LESS_EQUAL});
+  StateToTokenType.insert(
+      {DFAState::GREATER_EQUAL_STATE, TokenType::GREATER_EQUAL});
+  StateToTokenType.insert(
+      {DFAState::LEFT_BRACKET_STATE, TokenType::LEFT_BRACKET});
+  StateToTokenType.insert(
+      {DFAState::RIGHT_BRACKET_STATE, TokenType::RIGHT_BRACKET});
+  StateToTokenType.insert({DFAState::LEFT_BRACE_STATE, TokenType::LEFT_BRACE});
+  StateToTokenType.insert(
+      {DFAState::RIGHT_BRACE_STATE, TokenType::RIGHT_BRACE});
+  StateToTokenType.insert({DFAState::ARROW_STATE, TokenType::ARROW});
+  StateToTokenType.insert({DFAState::COMMA_STATE, TokenType::COMMA});
+  StateToTokenType.insert({DFAState::COLON_STATE, TokenType::COLON});
+  StateToTokenType.insert({DFAState::SEMICOLON_STATE, TokenType::SEMICOLON});
 }
 }  // namespace miniplc0

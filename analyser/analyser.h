@@ -9,9 +9,13 @@
 
 #include "error/error.h"
 #include "instruction/instruction.h"
+#include "symbol.h"
 #include "tokenizer/token.h"
 
 namespace miniplc0 {
+
+#define IN
+#define OUT
 
 class Analyser final {
  private:
@@ -40,30 +44,65 @@ class Analyser final {
 
  private:
   // 所有的递归子程序
-
-  // <程序>
-  std::optional<CompilationError> analyseProgram();
-  // <主过程>
-  std::optional<CompilationError> analyseMain();
-  // <常量声明>
-  std::optional<CompilationError> analyseConstantDeclaration();
-  // <变量声明>
-  std::optional<CompilationError> analyseVariableDeclaration();
-  // <语句序列>
-  std::optional<CompilationError> analyseStatementSequence();
   // <常表达式>
   // 这里的 out 是常表达式的值
   std::optional<CompilationError> analyseConstantExpression(int32_t &out);
+
+  /* 以下为表达式 */
   // <表达式>
   std::optional<CompilationError> analyseExpression();
-  // <赋值语句>
-  std::optional<CompilationError> analyseAssignmentStatement();
-  // <输出语句>
-  std::optional<CompilationError> analyseOutputStatement();
-  // <项>
-  std::optional<CompilationError> analyseItem();
-  // <因子>
-  std::optional<CompilationError> analyseFactor();
+  // <运算符表达式>
+  std::optional<CompilationError> analyseOperatorExpression();
+  // <取反表达式>
+  // negate_expr -> '-' expr
+  std::optional<CompilationError> analyseNegateExpression();
+  // <赋值表达式>assign_expr -> l_expr '=' expr
+  std::optional<CompilationError> analyseAssignExpression();
+  // <类型转换表达式>
+  // as_expr -> expr 'as' ty
+  std::optional<CompilationError> analyseAsExpression();
+  // <函数调用表达式>
+  std::optional<CompilationError> analyseCallExpression(); 
+  // <函数调用参数列表>
+  std::optional<CompilationError> analyseCallParameterList();
+  // <字面量表达式>
+  std::optional<CompilationError> analyseLiteralExpression();
+  // <标识符表达式>
+  std::optional<CompilationError> analyseIdentExpression();
+  // <括号表达式>
+  std::optional<CompilationError> analyseBracketExpression();
+
+  /* 以下为语句 */
+  // <语句>
+  std::optional<CompilationError> analyseStatement();
+  // <表达式语句>
+  std::optional<CompilationError> analyseExprStatement();
+  // <变量声明语句>
+  std::optional<CompilationError> analyseDeclVariableStatement(VariableItem &);
+  // <常量声明语句>
+  std::optional<CompilationError> analyseDeclConstStatement(VariableItem &);
+  // <if 语句>
+  std::optional<CompilationError> analyseIfStatement();
+  // <while 语句>
+  std::optional<CompilationError> analyseWhileStatement();
+  // <return 语句>
+  std::optional<CompilationError> analyseReturnStatement();
+  // <代码块>
+  std::optional<CompilationError> analyseBlockStatement(
+      /*std::vector<Instruction> &instructions*/);
+  // <空语句>
+  std::optional<CompilationError> analyseEmptyStatement();
+
+  /* 以下为函数 */
+  // 函数
+  std::optional<CompilationError> analyseFunction(FunctionItem &);
+  // 参数
+  std::optional<CompilationError> analyseFunctionParameter(FunctionItem &);
+  // 参数列表
+  std::optional<CompilationError> analyseFunctionParamList(FunctionItem &);
+
+  /* 以下为程序结构 */
+  std::optional<CompilationError> analyseProgram();
 
   // Token 缓冲区相关操作
 
@@ -72,28 +111,30 @@ class Analyser final {
   // 回退一个 token
   void unreadToken();
 
-  // 下面是符号表相关操作
-
-  // helper function
-  void _add(const Token &, std::map<std::string, int32_t> &);
-  // 添加变量、常量、未初始化的变量
-  void addVariable(const Token &);
-  void addConstant(const Token &);
-  void addUninitializedVariable(const Token &);
-  // 将变量改为已声明
-  void makeInitialized(const std::string &var_name);
-  // 是否被声明过
-  bool isDeclared(const std::string &);
-  // 是否是未初始化的变量
-  bool isUninitializedVariable(const std::string &);
-  // 是否是已初始化的变量
-  bool isInitializedVariable(const std::string &);
+  /* 下面是符号表相关操作 */
   // 是否是常量
   bool isConstant(const std::string &);
   // 获得 {变量，常量} 在栈上的偏移
   int32_t getIndex(const std::string &);
 
+  void pushNextScope();
+  void popCurrentScope();
+  Symbol getCurrentTable();
+  int getCurrentScopeLevel();
+  // 是否被声明过
+  bool isDeclared(const std::string &);
+  bool isLocalVariableDeclared(const std::string &);
+  bool isFunctionDeclared(const std::string &);
+  bool isGlobalVariableDeclared(const std::string &);
+
+  std::optional<CompilationError> declareVariable(VariableItem &);
+  std::optional<CompilationError> declareFunction(FunctionItem &);
+
  private:
+  std::vector<Symbol> _table_stack;
+  // 当前作用域
+  int _cur_scope_level = 0;
+  const int _global_scope_level = 0;
   std::vector<Token> _tokens;
   std::size_t _offset;
   std::vector<Instruction> _instructions;

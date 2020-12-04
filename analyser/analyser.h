@@ -121,14 +121,14 @@ class Analyser final {
   void popCurrentScope();
   Symbol getCurrentTable();
   int getCurrentScopeLevel();
+  
   // 是否被声明过
-  bool isDeclared(const std::string &);
   bool isLocalVariableDeclared(const std::string &);
   bool isFunctionDeclared(const std::string &);
   bool isGlobalVariableDeclared(const std::string &);
 
-  std::optional<CompilationError> declareVariable(VariableItem &);
-  std::optional<CompilationError> declareFunction(FunctionItem &);
+  void declareVariable(const Token &tk, VariableItem &);
+  void declareFunction(const Token &tk, FunctionItem &);
 
  private:
   std::vector<Symbol> _table_stack;

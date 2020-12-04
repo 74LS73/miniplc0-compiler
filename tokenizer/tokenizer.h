@@ -16,49 +16,63 @@
 
 namespace miniplc0 {
 
+// 状态机的所有状态
+enum DFAState {
+  INITIAL_STATE,
+  UNSIGNED_INTEGER_STATE,
+  UNSIGNED_DOUBLE_STATE,
+  SCIENCE_DOUBLE_STATE,
+  PLUS_SIGN_STATE,
+  MINUS_SIGN_STATE,
+  DIV_SIGN_STATE,
+  MULT_SIGN_STATE,
+  IDENTIFIER_STATE,
+  ASSIGN_STATE,
+  EQUAL_STATE,
+  NO_EQUAL_STATE,
+  LESS_SIGN_STATE,  
+  GREATER_SIGN_STATE,
+  LESS_EQUAL_STATE,
+  GREATER_EQUAL_STATE,
+  LEFT_BRACKET_STATE,
+  RIGHT_BRACKET_STATE,
+  LEFT_BRACE_STATE,
+  RIGHT_BRACE_STATE,
+  ARROW_STATE,
+  COMMA_STATE,
+  COLON_STATE,
+  SEMICOLON_STATE
+};
+
 class Tokenizer final {
  private:
   using uint64_t = std::uint64_t;
-  class DfaStateMachine;
-  // 状态机的所有状态
-  enum DFAState {
-    INITIAL_STATE,
-    UNSIGNED_INTEGER_STATE,
-    UNSIGNED_DOUBLE_STATE,
-    SCIENCE_DOUBLE_STATE,
-    PLUS_SIGN_STATE,
-    MINUS_SIGN_STATE,
-    DIV_SIGN_STATE,
-    MULT_SIGN_STATE,
-    IDENTIFIER_STATE,
-    ASSIGN_STATE,
-    EQUAL_STATE,
-    NO_EQUAL_STATE,
-    LESS_SIGN_STATE,  
-    GREATER_SIGN_STATE,
-    LESS_EQUAL_STATE,
-    GREATER_EQUAL_STATE,
-    LEFT_BRACKET_STATE,
-    RIGHT_BRACKET_STATE,
-    LEFT_BRACE_STATE,
-    RIGHT_BRACE_STATE,
-    ARROW_STATE,
-    COMMA_STATE,
-    COLON_STATE,
-    SEMICOLON_STATE
+
+
+
+  struct pair_hash {
+    template <class T1, class T2>
+    std::size_t operator()(const std::pair<T1, T2> &p) const {
+      auto h1 = std::hash<T1>{}(p.first);
+      auto h2 = std::hash<T2>{}(p.second);
+      return h1 ^ h2;
+    }
   };
 
   std::map<std::pair<DFAState, char>, DFAState> dfaStateMachine = std::map<std::pair<DFAState, char>, DFAState>();
   std::map<DFAState, TokenType> StateToTokenType = std::map<DFAState, TokenType>();
-  template<typename T> std::pair<void, std::optional<CompilationError>> addDfaEdge(DFAState before, T charSet, DFAState after);
-  std::pair<void, std::optional<CompilationError>> initDfaStateMachine();
-  std::pair<void, std::optional<CompilationError>> initStateToTokenType();
-  std::pair<DFAState, std::optional<CompilationError>> nextState(DFAState &current_state, char c);
+  std::optional<CompilationError> addDfaEdge(DFAState before, std::string charSet, DFAState after);
+  std::optional<CompilationError> initDfaStateMachine();
+  std::optional<CompilationError> initStateToTokenType();
+  DFAState nextState(DFAState &current_state, char c);
   
   
  public:
   Tokenizer(std::istream &ifs)
-      : _rdr(ifs), _initialized(false), _ptr(0, 0), _lines_buffer() {}
+      : _rdr(ifs), _initialized(false), _ptr(0, 0), _lines_buffer() {
+        initDfaStateMachine();
+        initStateToTokenType();
+      }
   Tokenizer(Tokenizer &&tkz) = delete;
   Tokenizer(const Tokenizer &) = delete;
   Tokenizer &operator=(const Tokenizer &) = delete;

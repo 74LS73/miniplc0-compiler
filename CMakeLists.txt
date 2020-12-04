@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.10)
 
 project(miniplc0)
 
@@ -19,6 +19,12 @@ set(lib_src
 	error/error.h
 	analyser/analyser.h
 	analyser/analyser.cpp
+	analyser/program.cpp
+	analyser/expression.cpp
+	analyser/function.cpp
+	analyser/statement.cpp
+	analyser/symbol.h
+	analyser/symbol.cpp
 	instruction/instruction.h
 )
 
@@ -90,3 +96,8 @@ endif()
 set_target_properties(miniplc0_test PROPERTIES
                       CXX_STANDARD 17
                       CXX_STANDARD_REQUIRE ON)
+
+# 调试信息
+SET(CMAKE_BUILD_TYPE "Debug") 
+SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g -ggdb")
+SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")

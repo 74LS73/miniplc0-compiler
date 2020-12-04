@@ -17,6 +17,8 @@ std::optional<CompilationError> Analyser::analyseStatement() { return {}; }
 // expr_stmt -> expr ';'
 std::optional<CompilationError> Analyser::analyseExprStatement() {
   auto err = analyseExpression();
+  if (err.has_value()) return err;
+
   auto next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::SEMICOLON) {
     return std::make_optional<CompilationError>(_current_pos,
@@ -42,7 +44,7 @@ std::optional<CompilationError> Analyser::analyseDeclVariableStatement(VariableI
     return std::make_optional<CompilationError>(_current_pos,
                                                 ErrorCode::ErrNeedIdentifier);
   }
-  if (isDeclared(next.value().GetValueString())) {
+  if (isLocalVariableDeclared(next.value().GetValueString())) {
     return std::make_optional<CompilationError>(_current_pos,
                                                 ErrorCode::ErrDuplicateDeclaration);
   }
@@ -102,7 +104,7 @@ std::optional<CompilationError> Analyser::analyseDeclConstStatement(VariableItem
     return std::make_optional<CompilationError>(_current_pos,
                                                 ErrorCode::ErrNeedIdentifier);
   }
-  if (isDeclared(next.value().GetValueString()) == true) {
+  if (isLocalVariableDeclared(next.value().GetValueString()) == true) {
     return std::make_optional<CompilationError>(_current_pos,
                                                 ErrorCode::ErrDuplicateDeclaration);
   }
@@ -158,8 +160,9 @@ std::optional<CompilationError> Analyser::analyseIfStatement() {
   if (next.has_value() && next.value().GetType() == TokenType::ELSE) {
   } else {
     unreadToken();
-    return {};
   }
+
+  return {};
 }
 
 // while_stmt -> 'while' expr block_stmt
@@ -179,10 +182,13 @@ std::optional<CompilationError> Analyser::analyseWhileStatement() {
 
   next = nextToken();
   if (next.has_value() && next.value().GetType() == TokenType::ELSE) {
+    err = analyseBlockStatement();
+    if (err.has_value()) return err;
   } else {
     unreadToken();
-    return {};
   }
+
+  return {};
 }
 
 // return_stmt -> 'return' expr? ';'
@@ -231,7 +237,7 @@ std::optional<CompilationError> Analyser::analyseBlockStatement(/*std::vector<In
 }
 
 // empty_stmt -> ';'
-std::optional<CompilationError> Analyser::analyseReturnStatement() {
+std::optional<CompilationError> Analyser::analyseEmptyStatement() {
   auto next = nextToken();
   std::optional<miniplc0::CompilationError> err;
   if (!next.has_value() || next.value().GetType() != TokenType::SEMICOLON) {

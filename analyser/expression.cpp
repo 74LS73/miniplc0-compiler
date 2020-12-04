@@ -68,7 +68,7 @@ std::optional<CompilationError> Analyser::analyseExpression() {
 }
 // <运算符表达式>
 std::optional<CompilationError> Analyser::analyseOperatorExpression() {
-
+  return {};
 }
 
 // <取反表达式>
@@ -115,6 +115,7 @@ std::optional<CompilationError> Analyser::analyseAssignExpression() {
 std::optional<CompilationError> Analyser::analyseAsExpression() {
   std::optional<miniplc0::CompilationError> err;
   std::optional<miniplc0::Token> next = nextToken();
+  return {};
 }
 
 // <函数调用表达式>
@@ -140,6 +141,8 @@ std::optional<CompilationError> Analyser::analyseCallExpression() {
     return std::make_optional<CompilationError>(
         _current_pos, ErrorCode::ErrNeedIdentifier);
   }
+
+  return {};
 }
 
 // <函数调用参数列表>
@@ -181,6 +184,8 @@ std::optional<CompilationError> Analyser::analyseLiteralExpression() {
     return std::make_optional<CompilationError>(
         _current_pos, ErrorCode::ErrRecognized);
   }
+
+  return {};
 }
 
 // <标识符表达式>

@@ -13,12 +13,20 @@ void Symbol::_add(const Token &tk, std::map<std::string, T> &mp, T item, int &_n
   if (tk.GetType() != TokenType::IDENTIFIER)
     DieAndPrint("only identifier can be added to the table.");
   mp[tk.GetValueString()] = item;
-  //_nextTokenIndex++;
+  _nextTokenIndex++;
 }
 
 void Symbol::addVariable(const Token &tk, VariableItem item) { _add(tk, _vars, item, _nextFunctionIndex); }
 
 void Symbol::addFunction(const Token &tk, FunctionItem item) { _add(tk, _function, item, _nextFunctionIndex); }
+
+bool Symbol::hasFunction(const std::string &s) {
+  return _function.count(s);
+}
+
+bool Symbol::hasVariable(const std::string &s) {
+  return _vars.count(s);
+}
 
 bool Symbol::isDeclared(const std::string &s) {
   return _vars.count(s) + _function.count(s); 
@@ -30,6 +38,13 @@ bool Symbol::isConstant(const std::string &s) {
 }
 
 int Symbol::getVariableNumber() { return _vars.size(); }
+
+
+  // 是否是常量
+bool isConstant(const std::string &);
+
+
+
 
 int32_t Analyser::getIndex(const std::string &s) {
   if (_uninitialized_vars.find(s) != _uninitialized_vars.end())
@@ -56,6 +71,7 @@ Symbol Analyser::getCurrentTable() { return _table_stack[_cur_scope_level]; }
 
 int Analyser::getCurrentScopeLevel() { return _cur_scope_level; }
 
+// 是否被声明过
 bool Analyser::isLocalVariableDeclared(const std::string &token_name) {
   return _table_stack[_cur_scope_level].hasVariable(token_name);
 }
@@ -68,5 +84,12 @@ bool Analyser::isGlobalVariableDeclared(const std::string &token_name) {
   return _table_stack[_global_scope_level].hasVariable(token_name);
 }
 
+void Analyser::declareVariable(const Token &tk, VariableItem &item) {
+  getCurrentTable().addVariable(tk, item);
+}
+
+void Analyser::declareFunction(const Token &tk, FunctionItem &item) {
+  getCurrentTable().addFunction(tk, item);
+}
 
 }  // namespace miniplc0

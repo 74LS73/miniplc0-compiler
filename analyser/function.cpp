@@ -22,7 +22,7 @@ std::optional<CompilationError> Analyser::analyseFunction(FunctionItem &item) {
                                                 ErrorCode::ErrNeedIdentifier);
   }
   std::string fn_name = next.value().GetValueString();
-  if (isDeclared(fn_name)) {
+  if (isFunctionDeclared(fn_name)) {
     return std::make_optional<CompilationError>(
         _current_pos, ErrorCode::ErrDuplicateDeclaration);
   }
@@ -63,7 +63,7 @@ std::optional<CompilationError> Analyser::analyseFunction(FunctionItem &item) {
   item.return_type = next.value().GetType();
 
   // body
-  err = analyseBlockStatement(item);
+  err = analyseBlockStatement();
   if (err.has_value()) return err;
 
   // 退出SubScope
@@ -93,7 +93,7 @@ std::optional<CompilationError> Analyser::analyseFunctionParameter(
                                                 ErrorCode::ErrNeedIdentifier);
   }
 
-  if (isDeclared(next.value().GetValueString())) {
+  if (isFunctionDeclared(next.value().GetValueString())) {
     return std::make_optional<CompilationError>(
         _current_pos, ErrorCode::ErrDuplicateDeclaration);
   }
@@ -110,7 +110,7 @@ std::optional<CompilationError> Analyser::analyseFunctionParameter(
   }
   item.type = next.value().GetType();
 
-  declareVariable(item);
+  declareVariable(next.value(), item);
 
   fn_item.params.push_back(item);
   fn_item.param_slots++;

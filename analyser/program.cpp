@@ -18,7 +18,7 @@ std::optional<CompilationError> Analyser::analyseProgram() {
       err = analyseFunction(item);
       if (err.has_value()) return err;
 
-      declareFunction(item);
+      declareFunction(next.value(), item);
     } else if (next.value().GetType() == TokenType::LET) {
       unreadToken();
 
@@ -26,7 +26,7 @@ std::optional<CompilationError> Analyser::analyseProgram() {
       err = analyseDeclVariableStatement(item);
       if (err.has_value()) return err;
 
-      declareVariable(item);
+      declareVariable(next.value(), item);
     } else if (next.value().GetType() == TokenType::CONST) {
       unreadToken();
 
@@ -34,7 +34,7 @@ std::optional<CompilationError> Analyser::analyseProgram() {
       err = analyseDeclConstStatement(item);
       if (err.has_value()) return err;
 
-      declareVariable(item);
+      declareVariable(next.value(), item);
     } else {
       unreadToken();
       return std::make_optional<CompilationError>(_current_pos,

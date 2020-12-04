@@ -61,41 +61,34 @@ Tokenizer::nextToken() {
     // 因为我们实现了 unread，为了省事我们选择第一种
 
     auto current_char = nextChar();
+
+    // 遇到了文件尾：返回一个空的token，和编译错误ErrEOF
+    if (!current_char.has_value()) {
+      return std::make_pair(std::optional<Token>(),
+                            std::make_optional<CompilationError>(0, 0, ErrEOF));
+    }
     char ch = current_char.value();
 
-    // TODO：遇到了文件尾：返回一个空的token，和编译错误ErrEOF
-    // if (!current_char.has_value())
-    //   return std::make_pair(
-    //       std::optional<Token>(),
-    //       std::make_optional<CompilationError>(0, 0, ErrEOF));
-
-    // 首先排除不允许出现的字符，直接报错
-    if (!miniplc0::isprint(ch)) {  // control codes and backspace
-      unreadLast();
-      return std::make_pair(std::optional<Token>(),
-                            std::make_optional<CompilationError>(
-                                pos, ErrorCode::ErrInvalidInput));
-    }
-
     // TODO : 错误处理
-    next_state = nextState(current_state, ch).first;
 
+    next_state = nextState(current_state, ch);
     // 如果发生了从INITIAL到其他状态的转换
     // ss接受字符
-    if (current_state == DFAState::INITIAL_STATE &&
-        next_state != DFAState::INITIAL_STATE) {
-      ss << ch;
+    if (current_state == DFAState::INITIAL_STATE && next_state != DFAState::INITIAL_STATE) {
+      pos = previousPos();
     }
-
-    // 任何一个状态结束后都会重新返回到初始状态
-    // 如果返回到初始状态，说明已经处理完了一个Token
-    // 故可以返回结果
-    else if (next_state == DFAState::INITIAL_STATE &&
-             current_state != DFAState::INITIAL_STATE) {
+    if (next_state != DFAState::INITIAL_STATE) {
+      ss << ch;
+    } else if (next_state == DFAState::INITIAL_STATE &&
+               current_state != DFAState::INITIAL_STATE) {
+      // 任何一个状态结束后都会重新返回到初始状态
+      // 如果返回到初始状态，说明已经处理完了一个Token
+      // 故可以返回结果
       unreadLast();
       std::string stoken;
       ss >> stoken;
-      auto tokentype = StateToTokenType[next_state];
+
+      auto tokentype = StateToTokenType[current_state];
       // 特判标识符
       if (current_state == DFAState::IDENTIFIER_STATE) {
         tokentype = verifyKeyword(stoken);
@@ -194,20 +187,21 @@ enum TokenType Tokenizer::verifyKeyword(std::string keyword) {
   return TokenType::IDENTIFIER;
 }
 
-std::pair<Tokenizer::DFAState, std::optional<CompilationError>>
-Tokenizer::nextState(DFAState& current_state, char c) {
-  auto next_state = this->dfaStateMachine[{current_state, c}];
-  return std::make_pair(next_state, std::optional<CompilationError>());
+DFAState Tokenizer::nextState(DFAState& current_state, char c) {
+  auto next_state = dfaStateMachine[{current_state, c}];
+  return next_state;
 }
 
-template <typename T>
-std::pair<void, std::optional<CompilationError>> Tokenizer::addDfaEdge(
-    enum DFAState before, T charSet, enum DFAState after) {
-  for (auto& c : charSet) dfaStateMachine.insert({{before, c}, after});
+std::optional<CompilationError> Tokenizer::addDfaEdge(DFAState before,
+                                                      std::string charSet,
+                                                      DFAState after) {
+  for (char& c : charSet) {
+    dfaStateMachine.insert({{before, c}, after});
+  }
+  return {};
 }
 
-std::pair<void, std::optional<CompilationError>>
-Tokenizer::initDfaStateMachine() {
+std::optional<CompilationError> Tokenizer::initDfaStateMachine() {
   // INITIAL_STATE
   addDfaEdge(DFAState::INITIAL_STATE, "=", DFAState::ASSIGN_STATE);
   addDfaEdge(DFAState::INITIAL_STATE, "-", DFAState::MINUS_SIGN_STATE);
@@ -251,10 +245,11 @@ Tokenizer::initDfaStateMachine() {
              DFAState::UNSIGNED_DOUBLE_STATE);
   addDfaEdge(DFAState::UNSIGNED_DOUBLE_STATE, "0123456789",
              DFAState::UNSIGNED_DOUBLE_STATE);
+
+  return {};
 }
 
-std::pair<void, std::optional<CompilationError>>
-Tokenizer::initStateToTokenType() {
+std::optional<CompilationError> Tokenizer::initStateToTokenType() {
   StateToTokenType.insert(
       {DFAState::UNSIGNED_INTEGER_STATE, TokenType::UNSIGNED_INTEGER});
   StateToTokenType.insert(
@@ -284,5 +279,7 @@ Tokenizer::initStateToTokenType() {
   StateToTokenType.insert({DFAState::COMMA_STATE, TokenType::COMMA});
   StateToTokenType.insert({DFAState::COLON_STATE, TokenType::COLON});
   StateToTokenType.insert({DFAState::SEMICOLON_STATE, TokenType::SEMICOLON});
+  return {};
 }
+
 }  // namespace miniplc0

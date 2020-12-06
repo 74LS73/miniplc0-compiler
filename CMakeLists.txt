@@ -13,6 +13,7 @@ set(PROJECT_LIB "${PROJECT_NAME}_lib")
 
 set(lib_src
 	tokenizer/token.h
+	tokenizer/token.cpp
 	tokenizer/tokenizer.h
 	tokenizer/tokenizer.cpp
 	tokenizer/utils.hpp
@@ -25,6 +26,7 @@ set(lib_src
 	analyser/statement.cpp
 	analyser/symbol.h
 	analyser/symbol.cpp
+	analyser/item.h
 	instruction/instruction.h
 )
 

@@ -62,6 +62,9 @@ struct formatter<miniplc0::ErrorCode> {
       case miniplc0::ErrNeedArrow:
         name = "Need an arrow here.";
         break;
+      case miniplc0::ErrNeedOperator:
+        name = "Need an operator here.";
+        break;
       case miniplc0::ErrConstantNeedValue:
         name = "Const variable need an value here.";
         break;

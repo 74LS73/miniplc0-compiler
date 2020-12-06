@@ -4,10 +4,10 @@
 
 namespace miniplc0 {
 
-bool isIntegerOverflow(std::string s, int prefix);
-
 std::pair<std::vector<Instruction>, std::optional<CompilationError>>
 Analyser::Analyse() {
+  // 初始化符号表
+  _initTableStack();
   auto err = analyseProgram();
   if (err.has_value())
     return std::make_pair(std::vector<Instruction>(), err);
@@ -30,12 +30,21 @@ void Analyser::unreadToken() {
   _offset--;
 }
 
-bool isIntegerOverflow(std::string s, int prefix) {
-  if (s.length() < 10) return false;
-  else if (s.length() > 10) return true;
+
+
+// 以下下是针对int的操作
+std::string removeNumberPrefixZero(std::string s) {
+  int pos = s.find_first_not_of('0');
+  return s.substr(pos, -1);
+}
+
+// 注意，此编译器接受的int统统为int64_t
+bool Analyser::isIntegerOverflow(std::string s, int prefix) {
+  if (s.length() < 20) return false;
+  else if (s.length() >= 20) return true;
   else {
-    if (s > "2147483648") return true;
-    else if (s == "2147483648") return prefix != -1;
+    if (s > "9223372036854775807") return true;
+    else if (s == "9223372036854775808") return prefix != -1;
     else return false;
   }
 }

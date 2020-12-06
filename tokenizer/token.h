@@ -14,16 +14,18 @@ enum TokenType {
   UNSIGNED_DOUBLE,   // digit+ '.' digit+
   SCIENCE_DOUBLE,    // digit+ '.' digit+ ([eE] [+-]? digit+)?
   CHAR_LITERAL,      //
-  IDENTIFIER,        // [_a-zA-Z] [_a-zA-Z0-9]*
   STRING_LITERAL,    // "  "
+  IDENTIFIER,        // [_a-zA-Z] [_a-zA-Z0-9]*
 
   COMMENT,  // //.*\n
 
   /* keyword */
-  TYPE,      // 待定
-  INT,       // int
-  VOID,      // void
-  DOUBLE,    // double
+  // 类型
+  INT,     // int
+  DOUBLE,  // double
+  VOID,    // void
+
+  // 其他
   FN,        // fn
   LET,       // let
   CONST,     // const
@@ -35,18 +37,20 @@ enum TokenType {
   CONTINUE,  // continue
   RETURN,    // return
 
-  /*  */
+  ASSIGN,  // =
+  // 以下下是Operator
   PLUS_SIGN,      // +
   MINUS_SIGN,     // -
   MULT_SIGN,      // *
   DIV_SIGN,       // /
-  ASSIGN,         // =
   EQUAL,          // ==
   NO_EQUAL,       // !=
   LESS_SIGN,      // <
   GREATER_SIGN,   // >
   LESS_EQUAL,     // <=
   GREATER_EQUAL,  // >=
+
+  //
   LEFT_BRACKET,   // (
   RIGHT_BRACKET,  // )
   LEFT_BRACE,     // {
@@ -56,6 +60,8 @@ enum TokenType {
   COLON,          // :
   SEMICOLON       // ;
 };
+
+int32_t getOperatorPriority(TokenType &);
 
 class Token final {
  private:
@@ -119,6 +125,10 @@ class Token final {
   std::any _value;
   std::pair<uint64_t, uint64_t> _start_pos;
   std::pair<uint64_t, uint64_t> _end_pos;
+
+ public:
+  bool isTokenAType();
+  bool isTokenABinaryOperator();
 };
 
 inline void swap(Token &lhs, Token &rhs) {
@@ -128,4 +138,19 @@ inline void swap(Token &lhs, Token &rhs) {
   swap(lhs._start_pos, rhs._start_pos);
   swap(lhs._end_pos, rhs._end_pos);
 }
+
+// Token之间的比较，
+// 仅仅用于运算符优先级
+// 所以实在是丑陋 -_-||
+bool operator<(const Token &, const TokenType &);
+bool operator<(const Token &, const Token &);
+
+inline bool Token::isTokenAType() {
+  return _type >= TokenType::INT && _type <= TokenType::VOID;
+}
+
+inline bool Token::isTokenABinaryOperator() {
+  return _type >= TokenType::PLUS_SIGN && _type <= TokenType::GREATER_EQUAL;
+}
+
 }  // namespace miniplc0

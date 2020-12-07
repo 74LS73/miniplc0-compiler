@@ -38,6 +38,9 @@ std::optional<CompilationError> Analyser::analyseFunction() {
                                                 ErrorCode::ErrNeedBracket);
   }
 
+  // 进入SubScope
+  _symbol_table_stack.pushNextScope();
+  
   // 判断一下是否有参数
   next = nextToken();
   if (next.has_value() && next.value().GetType() == TokenType::RIGHT_BRACKET) {
@@ -45,8 +48,6 @@ std::optional<CompilationError> Analyser::analyseFunction() {
   }
   unreadToken();
 
-  // 进入SubScope
-  _symbol_table_stack.pushNextScope();
   err = analyseFunctionParamList(func);
   if (err.has_value()) return err;
 

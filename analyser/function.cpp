@@ -8,7 +8,7 @@ namespace miniplc0 {
 // //               function_name  param_list     return_type  function_body
 std::optional<CompilationError> Analyser::analyseFunction() {
   std::optional<miniplc0::CompilationError> err;
-  auto item = FunctionItem();
+  auto func = FunctionItem();
   auto next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::FN) {
     return std::make_optional<CompilationError>(
@@ -29,7 +29,7 @@ std::optional<CompilationError> Analyser::analyseFunction() {
     return std::make_optional<CompilationError>(
         _current_pos, ErrorCode::ErrDuplicateDeclaration);
   }
-  item.name = fn_name;
+  func.name = fn_name;
 
   // (
   next = nextToken();
@@ -47,7 +47,7 @@ std::optional<CompilationError> Analyser::analyseFunction() {
 
   // 进入SubScope
   pushNextScope();
-  err = analyseFunctionParamList(item);
+  err = analyseFunctionParamList(func);
   if (err.has_value()) return err;
 
   // )
@@ -71,17 +71,21 @@ std::optional<CompilationError> Analyser::analyseFunction() {
     return std::make_optional<CompilationError>(_current_pos,
                                                 ErrorCode::ErrNeedType);
   }
-  item.return_type = next.value().GetType();
+  func.return_type = next.value().GetType();
+  if (next.value().GetType() != TokenType::VOID) {
+    func.return_slots++;
+  }
+
 
   // body
-  err = analyseBlockStatement();
+  err = analyseBlockStatement(func);
   if (err.has_value()) return err;
 
   // 退出SubScope
   popCurrentScope();
 
   // TODO
-  declareFunction(fn_token, item);
+  declareFunction(fn_token, func);
 
   if (err.has_value()) return err;
 
@@ -90,7 +94,7 @@ std::optional<CompilationError> Analyser::analyseFunction() {
 
 // function_param -> 'const'? IDENT ':' ty
 std::optional<CompilationError> Analyser::analyseFunctionParameter(
-    FunctionItem &fn_item) {
+    FunctionItem &func) {
   std::optional<miniplc0::CompilationError> err;
   auto item = VariableItem();
 
@@ -127,20 +131,20 @@ std::optional<CompilationError> Analyser::analyseFunctionParameter(
   
   declareVariable(var_token, item);
 
-  fn_item.params.push_back(item);
-  fn_item.param_slots++;
+  func.params.push_back(item);
+  func.param_slots++;
 
   return {};
 }
 
 // function_param_list -> function_param (',' function_param)*
 std::optional<CompilationError> Analyser::analyseFunctionParamList(
-    FunctionItem &fn_item) {
+    FunctionItem &func) {
   std::optional<miniplc0::CompilationError> err;
 
   std::optional<miniplc0::Token> next;
   while (true) {
-    err = analyseFunctionParameter(fn_item);
+    err = analyseFunctionParameter(func);
     if (err.has_value()) return err;
     next = nextToken();
     if (!next.has_value() || next.value().GetType() != TokenType::COMMA) {

@@ -7,6 +7,10 @@ std::optional<CompilationError> Analyser::analyseProgram() {
   std::optional<miniplc0::CompilationError> err;
   std::optional<miniplc0::Token> next;
 
+  auto _start = FunctionItem();
+  auto _start_token = Token(TokenType::IDENTIFIER, "_start", 0, 0, 0, 0);
+  _start.name = "_start";
+  
   while (true) {
     next = nextToken();
     if (!next.has_value()) {
@@ -20,13 +24,13 @@ std::optional<CompilationError> Analyser::analyseProgram() {
     } else if (next.value().GetType() == TokenType::LET) {
       unreadToken();
 
-      err = analyseDeclVariableStatement();
+      err = analyseDeclVariableStatement(_start);
       if (err.has_value()) return err;
 
     } else if (next.value().GetType() == TokenType::CONST) {
       unreadToken();
 
-      err = analyseDeclConstStatement();
+      err = analyseDeclConstStatement(_start);
       if (err.has_value()) return err;
 
     } else {
@@ -35,6 +39,10 @@ std::optional<CompilationError> Analyser::analyseProgram() {
                                                   ErrorCode::ErrRecognized);
     }
   }
+
+
+  declareFunction(_start_token, _start);
+  // call main();
   return {};
 }
 }  // namespace miniplc0

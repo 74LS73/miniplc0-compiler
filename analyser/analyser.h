@@ -77,21 +77,21 @@ class Analyser final {
 
   /* 以下为语句 */
   // <语句>
-  std::optional<CompilationError> analyseStatement();
+  std::optional<CompilationError> analyseStatement(FunctionItem &);
   // <表达式语句>
-  std::optional<CompilationError> analyseExprStatement();
+  std::optional<CompilationError> analyseExprStatement(FunctionItem &);
   // <变量声明语句>
-  std::optional<CompilationError> analyseDeclVariableStatement();
+  std::optional<CompilationError> analyseDeclVariableStatement(FunctionItem &);
   // <常量声明语句>
-  std::optional<CompilationError> analyseDeclConstStatement();
+  std::optional<CompilationError> analyseDeclConstStatement(FunctionItem &);
   // <if 语句>
-  std::optional<CompilationError> analyseIfStatement();
+  std::optional<CompilationError> analyseIfStatement(FunctionItem &);
   // <while 语句>
-  std::optional<CompilationError> analyseWhileStatement();
+  std::optional<CompilationError> analyseWhileStatement(FunctionItem &);
   // <return 语句>
-  std::optional<CompilationError> analyseReturnStatement();
+  std::optional<CompilationError> analyseReturnStatement(FunctionItem &);
   // <代码块>
-  std::optional<CompilationError> analyseBlockStatement();
+  std::optional<CompilationError> analyseBlockStatement(FunctionItem &);
   // <空语句>
   std::optional<CompilationError> analyseEmptyStatement();
 

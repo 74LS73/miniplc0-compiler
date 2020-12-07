@@ -37,7 +37,8 @@ class SymbolTableStack final {
   int getVariableNumber();
 
  private:
-  SymbolTable getCurrentTable();
+  // 返回值和返回引用的区别了解一下
+  SymbolTable &getCurrentTable();
   int getCurrentScopeLevel();
 };
 

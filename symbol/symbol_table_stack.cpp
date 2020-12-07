@@ -13,7 +13,7 @@ void SymbolTableStack::pushNextScope() {
 void SymbolTableStack::popCurrentScope() { _symbol_table_stack.erase(_symbol_table_stack.end() - 1); }
 
 // 获取当前table
-SymbolTable SymbolTableStack::getCurrentTable() { return _symbol_table_stack[_cur_scope_level]; }
+SymbolTable &SymbolTableStack::getCurrentTable() { return _symbol_table_stack[_cur_scope_level]; }
 
 int SymbolTableStack::getCurrentScopeLevel() { return _cur_scope_level; }
 

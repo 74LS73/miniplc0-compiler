@@ -157,7 +157,7 @@ std::optional<CompilationError> Analyser::analyseDeclConstStatement(FunctionItem
                                                 ErrorCode::ErrNeedIdentifier);
   }
   auto var_token = next.value();
-  if (_symbol_table_stack.isLocalVariableDeclared(next.value().GetValueString()) == true) {
+  if (_symbol_table_stack.isLocalVariableDeclared(next.value().GetValueString())) {
     return std::make_optional<CompilationError>(
         _current_pos, ErrorCode::ErrDuplicateDeclaration);
   }

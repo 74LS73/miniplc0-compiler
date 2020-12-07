@@ -2,7 +2,6 @@
 
 namespace miniplc0 {
 
-
 // 加入一层table
 void SymbolTableStack::pushNextScope() {
   _symbol_table_stack.push_back(SymbolTable());
@@ -10,16 +9,21 @@ void SymbolTableStack::pushNextScope() {
 }
 
 // 删除当前table
-void SymbolTableStack::popCurrentScope() { _symbol_table_stack.erase(_symbol_table_stack.end() - 1); }
+void SymbolTableStack::popCurrentScope() {
+  _symbol_table_stack.erase(_symbol_table_stack.end() - 1);
+  --_cur_scope_level;
+}
 
 // 获取当前table
-SymbolTable &SymbolTableStack::getCurrentTable() { return _symbol_table_stack[_cur_scope_level]; }
+SymbolTable &SymbolTableStack::getCurrentTable() {
+  return _symbol_table_stack[_cur_scope_level];
+}
 
 int SymbolTableStack::getCurrentScopeLevel() { return _cur_scope_level; }
 
 // 是否被声明过
 bool SymbolTableStack::isLocalVariableDeclared(const std::string &token_name) {
-  return _symbol_table_stack[_cur_scope_level].hasVariable(token_name);
+  return getCurrentTable().hasVariable(token_name);
 }
 
 bool SymbolTableStack::isFunctionDeclared(const std::string &token_name) {
@@ -34,10 +38,10 @@ void SymbolTableStack::declareVariable(const Token &tk, VariableItem &item) {
   getCurrentTable().addVariable(tk, item);
 }
 
-void SymbolTableStack::declareGlobalVariable(const Token &tk, VariableItem &item) {
+void SymbolTableStack::declareGlobalVariable(const Token &tk,
+                                             VariableItem &item) {
   getCurrentTable().addVariable(tk, item);
 }
-
 
 void SymbolTableStack::declareFunction(const Token &tk, FunctionItem &item) {
   getCurrentTable().addFunction(tk, item);

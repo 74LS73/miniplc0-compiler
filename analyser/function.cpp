@@ -67,7 +67,7 @@ std::optional<CompilationError> Analyser::analyseFunction() {
 
   // return_type
   next = nextToken();
-  if (!next.has_value() || !isTokenAType(next.value())) {
+  if (!next.has_value() || !next.value().isTokenAType()) {
     return std::make_optional<CompilationError>(_current_pos,
                                                 ErrorCode::ErrNeedType);
   }
@@ -119,7 +119,7 @@ std::optional<CompilationError> Analyser::analyseFunctionParameter(
 
   next = nextToken();
   
-  if (!next.has_value() || !isTokenAType(next.value())) {
+  if (!next.has_value() || !next.value().isTokenAType()) {
     return std::make_optional<CompilationError>(_current_pos,
                                                 ErrorCode::ErrNeedType);
   }

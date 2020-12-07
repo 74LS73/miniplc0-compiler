@@ -40,10 +40,12 @@ bool Symbol::isConstant(const std::string &s) {
 int Symbol::getVariableNumber() { return _vars.size(); }
 
 
-  // 是否是常量
-bool isConstant(const std::string &);
 
 
+
+void Analyser::_initTableStack() {
+  _table_stack.push_back({});
+}
 
 
 int32_t Analyser::getIndex(const std::string &s) {

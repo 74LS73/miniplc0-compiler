@@ -257,7 +257,7 @@ std::optional<CompilationError> Analyser::analyseReturnStatement() {
     unreadToken();
     err = analyseExpression();
     if (err.has_value()) return err;
-    nextToken();
+    next = nextToken();
   }
   if (next.has_value() && next.value().GetType() == TokenType::SEMICOLON) {
     return {};

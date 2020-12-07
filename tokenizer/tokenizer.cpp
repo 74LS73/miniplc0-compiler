@@ -74,7 +74,8 @@ Tokenizer::nextToken() {
     next_state = nextState(current_state, ch);
     // 如果发生了从INITIAL到其他状态的转换
     // ss接受字符
-    if (current_state == DFAState::INITIAL_STATE && next_state != DFAState::INITIAL_STATE) {
+    if (current_state == DFAState::INITIAL_STATE &&
+        next_state != DFAState::INITIAL_STATE) {
       pos = previousPos();
     }
     if (next_state != DFAState::INITIAL_STATE) {
@@ -245,6 +246,10 @@ std::optional<CompilationError> Tokenizer::initDfaStateMachine() {
              DFAState::UNSIGNED_DOUBLE_STATE);
   addDfaEdge(DFAState::UNSIGNED_DOUBLE_STATE, "0123456789",
              DFAState::UNSIGNED_DOUBLE_STATE);
+
+  // TODO: String
+  addDfaEdge(DFAState::INITIAL_STATE, "\"", DFAState::STRING_LITERAL_STATE);
+  // TODO: Char
 
   return {};
 }

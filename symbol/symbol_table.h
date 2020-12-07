@@ -18,10 +18,10 @@ namespace miniplc0 {
  * 返回值的个数（0/1）
  */
 
-enum IdentifierType {
-  FUNCTION,
-  VARIABLE
-};
+// enum IdentifierType {
+//   FUNCTION,
+//   VARIABLE
+// };
 
 struct VariableItem {
   int32_t id;
@@ -40,10 +40,10 @@ struct FunctionItem {
   std::vector<Instruction> body;
 };
 
-class Symbol final {
+class SymbolTable final {
   
  public:
-  Symbol(): _nextFunctionIndex(0), _nextVariableIndex(0) {};
+  SymbolTable(): _nextFunctionIndex(0), _nextVariableIndex(0) {};
 
  private:
   int32_t _nextFunctionIndex;

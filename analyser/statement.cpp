@@ -94,7 +94,7 @@ std::optional<CompilationError> Analyser::analyseDeclVariableStatement(FunctionI
                                                 ErrorCode::ErrNeedIdentifier);
   }
   auto var_token = next.value();
-  if (isLocalVariableDeclared(next.value().GetValueString())) {
+  if (_symbol_table_stack.isLocalVariableDeclared(next.value().GetValueString())) {
     return std::make_optional<CompilationError>(
         _current_pos, ErrorCode::ErrDuplicateDeclaration);
   }
@@ -125,8 +125,7 @@ std::optional<CompilationError> Analyser::analyseDeclVariableStatement(FunctionI
   // ASSIGN
   next = nextToken();
   if (next.has_value() && next.value().GetType() == TokenType::ASSIGN) {
-    unreadToken();
-    err = analyseAssignExpression();
+    err = analyseExpression();
     if (err.has_value()) return err;
     next = nextToken();
   }
@@ -134,7 +133,7 @@ std::optional<CompilationError> Analyser::analyseDeclVariableStatement(FunctionI
     return std::make_optional<CompilationError>(_current_pos,
                                                 ErrorCode::ErrNeedSemicolon);
 
-  declareVariable(var_token, var);
+  _symbol_table_stack.declareVariable(var_token, var);
 
   return {};
 }
@@ -158,7 +157,7 @@ std::optional<CompilationError> Analyser::analyseDeclConstStatement(FunctionItem
                                                 ErrorCode::ErrNeedIdentifier);
   }
   auto var_token = next.value();
-  if (isLocalVariableDeclared(next.value().GetValueString()) == true) {
+  if (_symbol_table_stack.isLocalVariableDeclared(next.value().GetValueString()) == true) {
     return std::make_optional<CompilationError>(
         _current_pos, ErrorCode::ErrDuplicateDeclaration);
   }
@@ -184,14 +183,13 @@ std::optional<CompilationError> Analyser::analyseDeclConstStatement(FunctionItem
     return std::make_optional<CompilationError>(
         _current_pos, ErrorCode::ErrConstantNeedValue);
   }
-  unreadToken();
-  err = analyseAssignExpression();
+  err = analyseExpression();
   if (err.has_value()) return err;
   next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::SEMICOLON)
     return std::make_optional<CompilationError>(_current_pos,
                                                 ErrorCode::ErrNeedSemicolon);
-  declareVariable(var_token, var);
+  _symbol_table_stack.declareVariable(var_token, var);
   return {};
 }
 

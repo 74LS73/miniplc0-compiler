@@ -18,14 +18,16 @@ set(lib_src
 	tokenizer/tokenizer.cpp
 	tokenizer/utils.hpp
 	error/error.h
+	symbol/symbol_table.h
+	symbol/symbol_table.cpp
+	symbol/symbol_table_stack.h
+	symbol/symbol_table_stack.cpp
 	analyser/analyser.h
 	analyser/analyser.cpp
 	analyser/program.cpp
 	analyser/expression.cpp
 	analyser/function.cpp
 	analyser/statement.cpp
-	analyser/symbol.h
-	analyser/symbol.cpp
 	analyser/item.h
 	instruction/instruction.h
 )

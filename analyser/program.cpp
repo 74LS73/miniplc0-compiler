@@ -8,8 +8,8 @@ std::optional<CompilationError> Analyser::analyseProgram() {
   std::optional<miniplc0::Token> next;
 
   auto _start = FunctionItem();
-  auto _start_token = Token(TokenType::IDENTIFIER, "_start", 0, 0, 0, 0);
   _start.name = "_start";
+  auto _start_token = Token(TokenType::IDENTIFIER, _start.name, 0, 0, 0, 0);
   
   while (true) {
     next = nextToken();
@@ -40,8 +40,8 @@ std::optional<CompilationError> Analyser::analyseProgram() {
     }
   }
 
-
-  declareFunction(_start_token, _start);
+  _symbol_table_stack.declareFunction(_start_token, _start);
+  
   // call main();
   return {};
 }

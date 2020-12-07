@@ -10,7 +10,7 @@
 #include "error/error.h"
 #include "instruction/instruction.h"
 #include "item.h"
-#include "symbol.h"
+#include "symbol/symbol_table_stack.h"
 #include "tokenizer/token.h"
 
 namespace miniplc0 {
@@ -30,11 +30,7 @@ class Analyser final {
       : _tokens(std::move(v)),
         _offset(0),
         _instructions({}),
-        _current_pos(0, 0),
-        _uninitialized_vars({}),
-        _vars({}),
-        _consts({}),
-        _nextTokenIndex(0) {}
+        _current_pos(0, 0) {}
   Analyser(Analyser &&) = delete;
   Analyser(const Analyser &) = delete;
   Analyser &operator=(Analyser) = delete;
@@ -116,46 +112,14 @@ class Analyser final {
   // 回退一个 token
   void unreadToken();
 
-  /* 下面是符号表相关操作 */
-  void _initTableStack();
-  // 是否是常量
-  bool isConstant(const std::string &);
-  // 获得 {变量，常量} 在栈上的偏移
-  int32_t getIndex(const std::string &);
-
-  void pushNextScope();
-  void popCurrentScope();
-  Symbol getCurrentTable();
-  int getCurrentScopeLevel();
-
-  // 是否被声明过
-  bool isLocalVariableDeclared(const std::string &);
-  bool isFunctionDeclared(const std::string &);
-  bool isGlobalVariableDeclared(const std::string &);
-
-  void declareVariable(const Token &tk, VariableItem &);
-  void declareFunction(const Token &tk, FunctionItem &);
-
  private:
-  std::vector<Symbol> _table_stack;
-  // 当前作用域
-  int _cur_scope_level = 0;
-  const int _global_scope_level = 0;
+  SymbolTableStack _symbol_table_stack;
+
   std::vector<Token> _tokens;
   std::size_t _offset;
   std::vector<Instruction> _instructions;
   std::pair<uint64_t, uint64_t> _current_pos;
 
-  // 为了简单处理，我们直接把符号表耦合在语法分析里
-  // 变量                   示例
-  // _uninitialized_vars    var a;
-  // _vars                  var a=1;
-  // _consts                const a=1;
-  std::map<std::string, int32_t> _uninitialized_vars;
-  std::map<std::string, int32_t> _vars;
-  std::map<std::string, int32_t> _consts;
-  // 下一个 token 在栈的偏移
-  int32_t _nextTokenIndex;
 };
 
 }  // namespace miniplc0

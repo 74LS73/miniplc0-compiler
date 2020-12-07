@@ -6,8 +6,6 @@ namespace miniplc0 {
 
 std::pair<std::vector<Instruction>, std::optional<CompilationError>>
 Analyser::Analyse() {
-  // 初始化符号表
-  _initTableStack();
   auto err = analyseProgram();
   if (err.has_value())
     return std::make_pair(std::vector<Instruction>(), err);

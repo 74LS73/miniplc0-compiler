@@ -67,11 +67,11 @@ std::optional<CompilationError> Analyser::analyserItemExpression(
       if (err.has_value()) return err;
     }
   } else if (next.value().GetType() == TokenType::UNSIGNED_INTEGER) {
-    std::cout << next.value().GetValueString() << std::endl;
-    // TODO
+    std::cout << "PUSH" << next.value().GetValueString() << std::endl;
+    // TODO PUSH int
   } else if (next.value().GetType() == TokenType::UNSIGNED_DOUBLE) {
-    std::cout << next.value().GetValueString() << std::endl;
-    // TODO
+    std::cout << "PUSH" << next.value().GetValueString() << std::endl;
+    // TODO PUSH double
   } else if (next.value().GetType() == TokenType::CHAR_LITERAL) {
     std::cout << next.value().GetValueString() << std::endl;
     // TODO
@@ -99,6 +99,7 @@ std::optional<CompilationError> Analyser::analyserUnaryExpression(
   std::optional<miniplc0::Token> next;
 
   // - *
+  int nega = 0; 
   while (true) {
     next = nextToken();
     if (!next.has_value() || next.value().GetType() != TokenType::MINUS_SIGN) {
@@ -297,7 +298,8 @@ std::optional<CompilationError> Analyser::analyseIdentExpression() {
     return std::make_optional<CompilationError>(_current_pos,
                                                 ErrorCode::ErrNeedIdentifier);
   }
-
+  // auto var = 
+  std::cout << "PUSH" << next.value().GetValueString() << std::endl;
   return {};
 }
 

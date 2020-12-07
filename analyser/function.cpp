@@ -25,7 +25,7 @@ std::optional<CompilationError> Analyser::analyseFunction() {
 
   auto fn_token = next.value();
   std::string fn_name = next.value().GetValueString();
-  if (isFunctionDeclared(fn_name)) {
+  if (_symbol_table_stack.isFunctionDeclared(fn_name)) {
     return std::make_optional<CompilationError>(
         _current_pos, ErrorCode::ErrDuplicateDeclaration);
   }
@@ -46,7 +46,7 @@ std::optional<CompilationError> Analyser::analyseFunction() {
   unreadToken();
 
   // 进入SubScope
-  pushNextScope();
+  _symbol_table_stack.pushNextScope();
   err = analyseFunctionParamList(func);
   if (err.has_value()) return err;
 
@@ -82,10 +82,10 @@ std::optional<CompilationError> Analyser::analyseFunction() {
   if (err.has_value()) return err;
 
   // 退出SubScope
-  popCurrentScope();
+  _symbol_table_stack.popCurrentScope();
 
   // TODO
-  declareFunction(fn_token, func);
+  _symbol_table_stack.declareFunction(fn_token, func);
 
   if (err.has_value()) return err;
 
@@ -110,7 +110,7 @@ std::optional<CompilationError> Analyser::analyseFunctionParameter(
                                                 ErrorCode::ErrNeedIdentifier);
   }
 
-  if (isLocalVariableDeclared(next.value().GetValueString())) {
+  if (_symbol_table_stack.isLocalVariableDeclared(next.value().GetValueString())) {
     return std::make_optional<CompilationError>(
         _current_pos, ErrorCode::ErrDuplicateDeclaration);
   }
@@ -129,7 +129,7 @@ std::optional<CompilationError> Analyser::analyseFunctionParameter(
   }
   item.type = next.value().GetType();
   
-  declareVariable(var_token, item);
+  _symbol_table_stack.declareVariable(var_token, item);
 
   func.params.push_back(item);
   func.param_slots++;

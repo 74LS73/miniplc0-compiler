@@ -286,7 +286,7 @@ std::optional<CompilationError> Tokenizer::initStateToTokenType() {
   StateToTokenType.insert(
       {DFAState::UNSIGNED_DOUBLE_STATE, TokenType::UNSIGNED_DOUBLE});
   StateToTokenType.insert(
-      {DFAState::SCIENCE_DOUBLE_STATE, TokenType::SCIENCE_DOUBLE});
+      {DFAState::SCIENCE_DOUBLE_STATE, TokenType::UNSIGNED_DOUBLE});
   StateToTokenType.insert({DFAState::PLUS_SIGN_STATE, TokenType::PLUS_SIGN});
   StateToTokenType.insert({DFAState::MINUS_SIGN_STATE, TokenType::MINUS_SIGN});
   StateToTokenType.insert({DFAState::DIV_SIGN_STATE, TokenType::DIV_SIGN});

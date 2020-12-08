@@ -12,7 +12,7 @@ enum TokenType {
   NULL_TOKEN,
   UNSIGNED_INTEGER,  // digit+
   UNSIGNED_DOUBLE,   // digit+ '.' digit+
-  SCIENCE_DOUBLE,    // digit+ '.' digit+ ([eE] [+-]? digit+)?
+  // SCIENCE_DOUBLE,    // digit+ '.' digit+ ([eE] [+-]? digit+)?
   CHAR_LITERAL,      //
   STRING_LITERAL,    // "  "
   IDENTIFIER,        // [_a-zA-Z] [_a-zA-Z0-9]*

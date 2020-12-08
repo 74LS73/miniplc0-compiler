@@ -151,9 +151,9 @@ struct formatter<miniplc0::TokenType> {
       case miniplc0::UNSIGNED_DOUBLE:
         name = "UnsignedDouble";
         break;
-      case miniplc0::SCIENCE_DOUBLE:
-        name = "ScienceDouble";
-        break;
+      // case miniplc0::SCIENCE_DOUBLE:
+      //   name = "ScienceDouble";
+      //   break;
       case miniplc0::CHAR_LITERAL:
         name = "CharLiteral";
         break;

@@ -90,6 +90,13 @@ Tokenizer::nextToken() {
       ss >> stoken;
 
       auto tokentype = StateToTokenType[current_state];
+
+      if (tokentype == NULL_TOKEN) {
+        return std::make_pair(std::optional<Token>(),
+                              std::make_optional<CompilationError>(
+                                  currentPos(), ErrorCode::ErrRecognized));
+      }
+
       // 特判标识符
       if (current_state == DFAState::IDENTIFIER_STATE) {
         tokentype = verifyKeyword(stoken);
@@ -109,7 +116,8 @@ Tokenizer::nextToken() {
   }
   // 预料之外的状态，如果执行到了这里，说明程序异常
   return std::make_pair(std::optional<Token>(),
-                        std::optional<CompilationError>());
+                        std::make_optional<CompilationError>(
+                            currentPos(), ErrorCode::ErrCompiler));
 }
 
 std::optional<CompilationError> Tokenizer::checkToken(const Token& t) {
@@ -242,10 +250,28 @@ std::optional<CompilationError> Tokenizer::initDfaStateMachine() {
   addDfaEdge(DFAState::UNSIGNED_INTEGER_STATE, "0123456789",
              DFAState::UNSIGNED_INTEGER_STATE);
 
+  // Double -> digit+ '.' digit+ ([eE] [+-]? digit+)?
   addDfaEdge(DFAState::UNSIGNED_INTEGER_STATE, ".",
+             DFAState::UNSIGNED_DOUBLE_STATE_MID);
+  addDfaEdge(DFAState::UNSIGNED_DOUBLE_STATE_MID, "0123456789",
              DFAState::UNSIGNED_DOUBLE_STATE);
   addDfaEdge(DFAState::UNSIGNED_DOUBLE_STATE, "0123456789",
              DFAState::UNSIGNED_DOUBLE_STATE);
+  // Normal Double End
+
+
+  //Seience Double Begin
+  addDfaEdge(DFAState::UNSIGNED_DOUBLE_STATE, "eE",
+             DFAState::SCIENCE_DOUBLE_STATE_MID1);
+  addDfaEdge(DFAState::SCIENCE_DOUBLE_STATE_MID1, "0123456789",
+             DFAState::SCIENCE_DOUBLE_STATE);
+  addDfaEdge(DFAState::SCIENCE_DOUBLE_STATE_MID1, "+-",
+             DFAState::SCIENCE_DOUBLE_STATE_MID2);
+  addDfaEdge(DFAState::SCIENCE_DOUBLE_STATE_MID2, "0123456789",
+             DFAState::SCIENCE_DOUBLE_STATE);
+  addDfaEdge(DFAState::SCIENCE_DOUBLE_STATE, "0123456789",
+             DFAState::SCIENCE_DOUBLE_STATE);
+  // Seience Double End
 
   // TODO: String
   addDfaEdge(DFAState::INITIAL_STATE, "\"", DFAState::STRING_LITERAL_STATE);
@@ -259,6 +285,8 @@ std::optional<CompilationError> Tokenizer::initStateToTokenType() {
       {DFAState::UNSIGNED_INTEGER_STATE, TokenType::UNSIGNED_INTEGER});
   StateToTokenType.insert(
       {DFAState::UNSIGNED_DOUBLE_STATE, TokenType::UNSIGNED_DOUBLE});
+  StateToTokenType.insert(
+      {DFAState::SCIENCE_DOUBLE_STATE, TokenType::SCIENCE_DOUBLE});
   StateToTokenType.insert({DFAState::PLUS_SIGN_STATE, TokenType::PLUS_SIGN});
   StateToTokenType.insert({DFAState::MINUS_SIGN_STATE, TokenType::MINUS_SIGN});
   StateToTokenType.insert({DFAState::DIV_SIGN_STATE, TokenType::DIV_SIGN});

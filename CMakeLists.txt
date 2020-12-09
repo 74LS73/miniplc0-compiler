@@ -22,14 +22,18 @@ set(lib_src
 	symbol/symbol_table.cpp
 	symbol/symbol_table_stack.h
 	symbol/symbol_table_stack.cpp
+	ast/item.h
 	analyser/analyser.h
 	analyser/analyser.cpp
 	analyser/program.cpp
 	analyser/expression.cpp
 	analyser/function.cpp
 	analyser/statement.cpp
-	analyser/item.h
+	analyser/utils.h
+	analyser/utils.cpp
 	instruction/instruction.h
+	generator/generator.h
+	generator/generator.cpp
 )
 
 set(main_src

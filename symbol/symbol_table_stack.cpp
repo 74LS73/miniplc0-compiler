@@ -47,4 +47,24 @@ void SymbolTableStack::declareFunction(const Token &tk, FunctionItem &item) {
   getCurrentTable().addFunction(tk, item);
 }
 
+std::optional<VariableItem> SymbolTableStack::getVariableByName(
+    std::string &s) {
+  for (int i = _cur_scope_level; i >= 0; --i) {
+    if (_symbol_table_stack[i].hasVariable(s)) {
+      return _symbol_table_stack[i].getVariableByName(s);
+    }
+  }
+  return {};
+}
+
+std::optional<VariableItem> SymbolTableStack::getGlobalVariableByName(
+    std::string &s) {
+  return _symbol_table_stack[0].getVariableByName(s);
+}
+
+std::optional<FunctionItem> SymbolTableStack::getFunctionByName(
+    std::string &s) {
+  return _symbol_table_stack[0].getFunctionByName(s);
+}
+
 }  // namespace miniplc0

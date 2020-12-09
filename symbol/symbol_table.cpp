@@ -36,4 +36,18 @@ bool SymbolTable::isConstant(const std::string &s) {
 
 int SymbolTable::getVariableNumber() { return _vars.size(); }
 
+std::optional<VariableItem> SymbolTable::getVariableByName(std::string &s) {
+  if (hasVariable(s)) {
+    return std::make_optional(_vars[s]);
+  }
+  return {};
+}
+
+std::optional<FunctionItem> SymbolTable::getFunctionByName(std::string &s) {
+  if (hasFunction(s)) {
+    return std::make_optional(_function[s]);
+  }
+  return {};
+}
+
 }  // namespace miniplc0

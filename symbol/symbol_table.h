@@ -4,41 +4,18 @@
 #include <optional>
 #include <vector>
 
-#include "error/error.h"
+#include "ast/item.h"
 #include "instruction/instruction.h"
 #include "tokenizer/token.h"
+#include "generator/generator.h"
+
+
 
 namespace miniplc0 {
 
-/**
- * 函数需要记录的信息：
- * 名字
- * 参数的个数
- * 内部局部变量的个数
- * 返回值的个数（0/1）
- */
 
-// enum IdentifierType {
-//   FUNCTION,
-//   VARIABLE
-// };
 
-struct VariableItem {
-  int32_t id;
-  enum TokenType type;
-  bool is_const;
-};
 
-struct FunctionItem {
-  int32_t id;
-  std::string name;
-  int32_t param_slots;
-  std::vector<VariableItem> params;
-  int32_t return_slots;
-  TokenType return_type;
-  int32_t local_slots;
-  std::vector<Instruction> body;
-};
 
 class SymbolTable final {
   
@@ -61,7 +38,10 @@ class SymbolTable final {
 
   bool hasFunction(const std::string &);
   bool hasVariable(const std::string &);
-  
+
+  std::optional<VariableItem> getVariableByName(std::string &s);
+  std::optional<FunctionItem> getFunctionByName(std::string &s);
+
   // 是否被声明过
   bool isDeclared(const std::string &);
   // 是否是常量

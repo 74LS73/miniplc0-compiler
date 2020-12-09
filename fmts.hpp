@@ -282,33 +282,33 @@ struct formatter<miniplc0::Operation> {
   auto format(const miniplc0::Operation &p, FormatContext &ctx) {
     std::string name;
     switch (p) {
-      case miniplc0::ILL:
-        name = "ILL";
-        break;
-      case miniplc0::ADD:
-        name = "ADD";
-        break;
-      case miniplc0::SUB:
-        name = "SUB";
-        break;
-      case miniplc0::MUL:
-        name = "MUL";
-        break;
-      case miniplc0::DIV:
-        name = "DIV";
-        break;
-      case miniplc0::WRT:
-        name = "WRT";
-        break;
-      case miniplc0::LIT:
-        name = "LIT";
-        break;
-      case miniplc0::LOD:
-        name = "LOD";
-        break;
-      case miniplc0::STO:
-        name = "STO";
-        break;
+      // case miniplc0::ILL:
+      //   name = "ILL";
+      //   break;
+      // case miniplc0::ADD:
+      //   name = "ADD";
+      //   break;
+      // case miniplc0::SUB:
+      //   name = "SUB";
+      //   break;
+      // case miniplc0::MUL:
+      //   name = "MUL";
+      //   break;
+      // case miniplc0::DIV:
+      //   name = "DIV";
+      //   break;
+      // case miniplc0::WRT:
+      //   name = "WRT";
+      //   break;
+      // case miniplc0::LIT:
+      //   name = "LIT";
+      //   break;
+      // case miniplc0::LOD:
+      //   name = "LOD";
+      //   break;
+      // case miniplc0::STO:
+      //   name = "STO";
+      //   break;
     }
     return format_to(ctx.out(), name);
   }
@@ -323,18 +323,18 @@ struct formatter<miniplc0::Instruction> {
   template <typename FormatContext>
   auto format(const miniplc0::Instruction &p, FormatContext &ctx) {
     std::string name;
-    switch (p.GetOperation()) {
-      case miniplc0::ILL:
-      case miniplc0::ADD:
-      case miniplc0::SUB:
-      case miniplc0::MUL:
-      case miniplc0::DIV:
-      case miniplc0::WRT:
-        return format_to(ctx.out(), "{}", p.GetOperation());
-      case miniplc0::LIT:
-      case miniplc0::LOD:
-      case miniplc0::STO:
-        return format_to(ctx.out(), "{} {}", p.GetOperation(), p.GetX());
+    switch (p.GetISA()) {
+      // case miniplc0::ILL:
+      // case miniplc0::ADD:
+      // case miniplc0::SUB:
+      // case miniplc0::MUL:
+      // case miniplc0::DIV:
+      // case miniplc0::WRT:
+      //   return format_to(ctx.out(), "{}", p.GetOperation());
+      // case miniplc0::LIT:
+      // case miniplc0::LOD:
+      // case miniplc0::STO:
+      //   return format_to(ctx.out(), "{} {}", p.GetOperation(), p.GetX());
     }
     return format_to(ctx.out(), "ILL");
   }

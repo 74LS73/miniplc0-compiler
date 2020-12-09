@@ -6,7 +6,7 @@
 namespace miniplc0 {
 
 enum Operation { ILL = 0, LIT, LOD, STO, ADD, SUB, MUL, DIV, WRT };
-enum NewOperation {
+enum ISA {
   NOP = 0x00,
   PUSH,
   POP,
@@ -75,9 +75,9 @@ class Instruction final {
   friend void swap(Instruction &lhs, Instruction &rhs);
 
  public:
-  Instruction(Operation opr, int32_t x) : _opr(opr), _x(x) {}
+  Instruction(ISA opr, int32_t x) : _opr(opr), _x(x) {}
 
-  Instruction() : Instruction(Operation::ILL, 0) {}
+  Instruction() : Instruction(ISA::NOP, 0) {}
   Instruction(const Instruction &i) {
     _opr = i._opr;
     _x = i._x;
@@ -91,11 +91,11 @@ class Instruction final {
     return _opr == i._opr && _x == i._x;
   }
 
-  Operation GetOperation() const { return _opr; }
+  ISA GetISA() const { return _opr; }
   int32_t GetX() const { return _x; }
 
  private:
-  Operation _opr;
+  ISA _opr;
   int32_t _x;
 };
 

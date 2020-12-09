@@ -7,9 +7,9 @@
 #include <utility>
 #include <vector>
 
+#include "ast/ast.h"
 #include "error/error.h"
 #include "instruction/instruction.h"
-#include "ast/item.h"
 #include "symbol/symbol_table_stack.h"
 #include "tokenizer/token.h"
 #include "utils.h"
@@ -46,30 +46,32 @@ class Analyser final {
   /* 以下为表达式 */
 
   // <表达式>
-  std::optional<CompilationError> analyseExpression(FunctionItem &);
+  std::optional<CompilationError> analyseExpression(std::shared_ptr<Item>);
   // <项表达式>
-  std::optional<CompilationError> analyserItemExpression(FunctionItem &,
-                                                         OUT OperatorItem &);
+  std::optional<CompilationError> analyserItemExpression(
+      OUT std::shared_ptr<Item>);
   // <一元运算符表达式>
-  std::optional<CompilationError> analyserUnaryExpression(FunctionItem &,
-                                                          OUT OperatorItem &);
+  std::optional<CompilationError> analyserUnaryExpression(
+      OUT std::shared_ptr<Item>);
   // <运算符表达式>
   std::optional<CompilationError> analyseOperatorExpression(
-      FunctionItem &, IN OperatorItem &, IN TokenType = TokenType::NULL_TOKEN);
+      IN std::shared_ptr<Item>, IN TokenType = TokenType::NULL_TOKEN);
   // // <取反表达式> negate_expr -> '-' expr
   // std::optional<CompilationError> analyseNegateExpression();
   // <赋值表达式>assign_expr -> l_expr '=' expr
-  std::optional<CompilationError> analyseAssignExpression(FunctionItem &);
+  std::optional<CompilationError> analyseAssignExpression();
   // // <类型转换表达式> as_expr -> expr 'as' ty
   // std::optional<CompilationError> analyseAsExpression();
   // <函数调用表达式>
-  std::optional<CompilationError> analyseCallExpression(FunctionItem &);
+  std::optional<CompilationError> analyseCallExpression(std::shared_ptr<Item>);
   // <字面量表达式>
-  std::optional<CompilationError> analyseLiteralExpression(FunctionItem &);
+  std::optional<CompilationError> analyseLiteralExpression(
+      std::shared_ptr<Item>);
   // <标识符表达式>
-  std::optional<CompilationError> analyseIdentExpression(FunctionItem &);
+  std::optional<CompilationError> analyseIdentExpression(std::shared_ptr<Item>);
   // <括号表达式>
-  std::optional<CompilationError> analyseBracketExpression(FunctionItem &);
+  std::optional<CompilationError> analyseBracketExpression(
+      std::shared_ptr<Item>);
 
   /* 以下为语句 */
   // <语句>

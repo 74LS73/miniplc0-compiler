@@ -69,13 +69,13 @@ enum ISA {
 
 class Instruction final {
  private:
-  using int32_t = std::int32_t;
+  using int64_t = std::int64_t;
 
  public:
   friend void swap(Instruction &lhs, Instruction &rhs);
 
  public:
-  Instruction(ISA opr, int32_t x) : _opr(opr), _x(x) {}
+  Instruction(ISA opr, int64_t x) : _opr(opr), _x(x) {}
 
   Instruction() : Instruction(ISA::NOP, 0) {}
   Instruction(const Instruction &i) {
@@ -92,11 +92,11 @@ class Instruction final {
   }
 
   ISA GetISA() const { return _opr; }
-  int32_t GetX() const { return _x; }
+  int64_t GetX() const { return _x; }
 
  private:
   ISA _opr;
-  int32_t _x;
+  int64_t _x;
 };
 
 inline void swap(Instruction &lhs, Instruction &rhs) {

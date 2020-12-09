@@ -12,7 +12,8 @@ namespace miniplc0 {
 //     | return_stmt
 //     | block_stmt
 //     | empty_stmt
-std::optional<CompilationError> Analyser::analyseStatement(FunctionItem &func, bool &need_return) {
+std::optional<CompilationError> Analyser::analyseStatement(FunctionItem &func,
+                                                           bool &need_return) {
   std::optional<miniplc0::CompilationError> err;
   auto next = nextToken();
 
@@ -66,7 +67,8 @@ std::optional<CompilationError> Analyser::analyseStatement(FunctionItem &func, b
 // expr_stmt -> expr ';'
 std::optional<CompilationError> Analyser::analyseExprStatement(
     FunctionItem &func) {
-  auto err = analyseExpression(func);
+      auto lhs = std::shared_ptr<Item>(new Item());
+  auto err = analyseExpression(lhs);
   if (err.has_value()) return err;
 
   auto next = nextToken();
@@ -122,17 +124,17 @@ std::optional<CompilationError> Analyser::analyseDeclVariableStatement(
 
   // TYPE
   next = nextToken();
-  if (!next.has_value() || next.value().GetType() != TokenType::INT ||
-      next.value().GetType() != TokenType::DOUBLE) {
-    // return std::make_optional<CompilationError>(_current_pos,
-    //                                          ErrorCode::ErrNeedType);
+  if (!next.has_value() || !next.value().isTokenAType()) {
+    return std::make_optional<CompilationError>(_current_pos,
+                                                ErrorCode::ErrNeedType);
   }
   var.type = next.value().GetType();
 
   // ASSIGN
   next = nextToken();
   if (next.has_value() && next.value().GetType() == TokenType::ASSIGN) {
-    err = analyseExpression(func);
+    auto lhs = std::shared_ptr<Item>(new Item());
+    err = analyseExpression(lhs);
     if (err.has_value()) return err;
     next = nextToken();
   }
@@ -183,10 +185,9 @@ std::optional<CompilationError> Analyser::analyseDeclConstStatement(
   }
   // TYPE
   next = nextToken();
-  if (!next.has_value() || (next.value().GetType() != TokenType::INT &&
-                            next.value().GetType() != TokenType::DOUBLE)) {
-    // return std::make_optional<CompilationError>(_current_pos,
-    //                                          ErrorCode::ErrNeedType);
+  if (!next.has_value() || !next.value().isTokenAType()) {
+    return std::make_optional<CompilationError>(_current_pos,
+                                                ErrorCode::ErrNeedType);
   }
   var.type = next.value().GetType();
 
@@ -196,7 +197,8 @@ std::optional<CompilationError> Analyser::analyseDeclConstStatement(
     return std::make_optional<CompilationError>(
         _current_pos, ErrorCode::ErrConstantNeedValue);
   }
-  err = analyseExpression(func);
+  auto lhs = std::shared_ptr<Item>(new Item());
+  err = analyseExpression(lhs);
   if (err.has_value()) return err;
   next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::SEMICOLON)
@@ -221,13 +223,13 @@ std::optional<CompilationError> Analyser::analyseIfStatement(
     return std::make_optional<CompilationError>(
         _current_pos, ErrorCode::ErrNeedDeclareSymbol);
   }
-  err = analyseExpression(func);
+  auto lhs = std::shared_ptr<Item>(new Item());
+  err = analyseExpression(lhs);
   if (err.has_value()) return err;
 
   bool if_need_return = true && need_return;
   err = analyseBlockStatement(func, if_need_return);
   if (err.has_value()) return err;
-
 
   bool else_need_return = true && need_return;
   next = nextToken();
@@ -263,7 +265,8 @@ std::optional<CompilationError> Analyser::analyseWhileStatement(
     return std::make_optional<CompilationError>(
         _current_pos, ErrorCode::ErrNeedDeclareSymbol);
   }
-  err = analyseExpression(func);
+  auto lhs = std::shared_ptr<Item>(new Item());
+  err = analyseExpression(lhs);
   if (err.has_value()) return err;
 
   bool while_need_return = false;
@@ -286,7 +289,8 @@ std::optional<CompilationError> Analyser::analyseReturnStatement(
   next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::SEMICOLON) {
     unreadToken();
-    err = analyseExpression(func);
+    auto lhs = std::shared_ptr<Item>(new Item());
+    err = analyseExpression(lhs);
     if (err.has_value()) return err;
     next = nextToken();
   }

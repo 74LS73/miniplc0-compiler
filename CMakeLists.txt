@@ -22,7 +22,8 @@ set(lib_src
 	symbol/symbol_table.cpp
 	symbol/symbol_table_stack.h
 	symbol/symbol_table_stack.cpp
-	ast/item.h
+	ast/ast.h
+	ast/ast.cpp
 	analyser/analyser.h
 	analyser/analyser.cpp
 	analyser/program.cpp

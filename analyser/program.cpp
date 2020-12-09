@@ -10,7 +10,7 @@ std::optional<CompilationError> Analyser::analyseProgram() {
   auto _start = FunctionItem();
   _start.name = "_start";
   auto _start_token = Token(TokenType::IDENTIFIER, _start.name, 0, 0, 0, 0);
-  
+
   while (true) {
     next = nextToken();
     if (!next.has_value()) {
@@ -24,13 +24,13 @@ std::optional<CompilationError> Analyser::analyseProgram() {
     } else if (next.value().GetType() == TokenType::LET) {
       unreadToken();
 
-      err = analyseDeclVariableStatement(_start);
+      err = analyseDeclVariableStatement(_start, VariableType::GLOBAL);
       if (err.has_value()) return err;
 
     } else if (next.value().GetType() == TokenType::CONST) {
       unreadToken();
 
-      err = analyseDeclConstStatement(_start);
+      err = analyseDeclConstStatement(_start, VariableType::GLOBAL);
       if (err.has_value()) return err;
 
     } else {
@@ -41,7 +41,7 @@ std::optional<CompilationError> Analyser::analyseProgram() {
   }
 
   _symbol_table_stack.declareFunction(_start_token, _start);
-  
+
   // call main();
   return {};
 }

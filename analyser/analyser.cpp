@@ -28,23 +28,4 @@ void Analyser::unreadToken() {
   _offset--;
 }
 
-
-
-// 以下下是针对int的操作
-std::string removeNumberPrefixZero(std::string s) {
-  int pos = s.find_first_not_of('0');
-  return s.substr(pos, -1);
-}
-
-// 注意，此编译器接受的int统统为int64_t
-bool Analyser::isIntegerOverflow(std::string s, int prefix) {
-  if (s.length() < 20) return false;
-  else if (s.length() >= 20) return true;
-  else {
-    if (s > "9223372036854775807") return true;
-    else if (s == "9223372036854775808") return prefix != -1;
-    else return false;
-  }
-}
-
 }  // namespace miniplc0

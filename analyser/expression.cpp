@@ -10,16 +10,18 @@ namespace miniplc0 {
 */
 
 // expr -> (unary  operator) | assign_expr
-std::optional<CompilationError> Analyser::analyseExpression() {
+std::optional<CompilationError> Analyser::analyseExpression(
+    FunctionItem &func) {
   std::optional<miniplc0::CompilationError> err;
   auto next = nextToken();
   if (next.has_value() && next.value().GetType() == TokenType::IDENTIFIER) {
     next = nextToken();
     if (next.has_value() && next.value().GetType() == TokenType::ASSIGN) {
-      unreadToken();unreadToken();
-      err = analyseAssignExpression();
+      unreadToken();
+      unreadToken();
+      err = analyseAssignExpression(func);
       if (err.has_value()) return err;
-      
+
       return {};
     }
     unreadToken();
@@ -28,10 +30,10 @@ std::optional<CompilationError> Analyser::analyseExpression() {
 
   auto lhs = OperatorItem();
 
-  err = analyserUnaryExpression(lhs);
+  err = analyserUnaryExpression(func, lhs);
   if (err.has_value()) return err;
 
-  err = analyseOperatorExpression(lhs);
+  err = analyseOperatorExpression(func, lhs);
   if (err.has_value()) return err;
 
   return {};
@@ -43,7 +45,7 @@ std::optional<CompilationError> Analyser::analyseExpression() {
 // | 字面量（INT, DOUBLE, CHAR, STRING）
 // | GroupEx
 std::optional<CompilationError> Analyser::analyserItemExpression(
-    OperatorItem &lhs) {
+    FunctionItem &func, OperatorItem &lhs) {
   std::optional<miniplc0::CompilationError> err;
   std::optional<miniplc0::Token> next = nextToken();
 
@@ -52,39 +54,30 @@ std::optional<CompilationError> Analyser::analyserItemExpression(
                                                 ErrorCode::ErrCompiler);
   } else if (next.value().GetType() == TokenType::IDENTIFIER) {
     next = nextToken();
-    
+
     if (next.has_value() && next.value().GetType() == TokenType::LEFT_BRACKET) {
       // FunctionCall
       unreadToken();
       unreadToken();
-      err = analyseCallExpression();
+      err = analyseCallExpression(func);
       if (err.has_value()) return err;
 
     } else {
       // IDentifier
-      unreadToken();unreadToken();
-      err = analyseIdentExpression();
+      unreadToken();
+      unreadToken();
+      err = analyseIdentExpression(func);
       if (err.has_value()) return err;
     }
-  } else if (next.value().GetType() == TokenType::UNSIGNED_INTEGER) {
-    std::cout << "PUSH" << next.value().GetValueString() << std::endl;
-    // TODO PUSH int
-  } else if (next.value().GetType() == TokenType::UNSIGNED_DOUBLE) {
-    std::cout << "PUSH" << next.value().GetValueString() << std::endl;
-    // TODO PUSH double
-  } else if (next.value().GetType() == TokenType::CHAR_LITERAL) {
-    std::cout << next.value().GetValueString() << std::endl;
-    // TODO
-  } else if (next.value().GetType() == TokenType::STRING_LITERAL) {
-    std::cout << next.value().GetValueString() << std::endl;
-    // TODO
   } else if (next.value().GetType() == TokenType::LEFT_BRACKET) {
     unreadToken();
-    err = analyseBracketExpression();
+    err = analyseBracketExpression(func);
     if (err.has_value()) return err;
   } else {
-    return std::make_optional<CompilationError>(_current_pos,
-                                                ErrorCode::ErrCompiler);
+    // 字面量
+    unreadToken();
+    err = analyseLiteralExpression(func);
+    if (err.has_value()) return err;
   }
 
   return {};
@@ -94,12 +87,12 @@ std::optional<CompilationError> Analyser::analyserItemExpression(
 // PreUOp -> '-'
 // ProUOp -> 'as' TypeDef
 std::optional<CompilationError> Analyser::analyserUnaryExpression(
-    OperatorItem &lhs) {
+    FunctionItem &func, OperatorItem &lhs) {
   std::optional<miniplc0::CompilationError> err;
   std::optional<miniplc0::Token> next;
 
   // - *
-  int nega = 0; 
+  int nega = 0;
   while (true) {
     next = nextToken();
     if (!next.has_value() || next.value().GetType() != TokenType::MINUS_SIGN) {
@@ -108,7 +101,7 @@ std::optional<CompilationError> Analyser::analyserUnaryExpression(
     }
   }
 
-  err = analyserItemExpression(lhs);
+  err = analyserItemExpression(func, lhs);
   if (err.has_value()) return err;
 
   while (true) {
@@ -135,7 +128,7 @@ std::optional<CompilationError> Analyser::analyserUnaryExpression(
 // 初始token_type记录当前正在分析的运算类型
 // 初始为默认值（对应优先级最小）
 std::optional<CompilationError> Analyser::analyseOperatorExpression(
-    OperatorItem &lhs, TokenType token_type) {
+    FunctionItem &func, OperatorItem &lhs, TokenType token_type) {
   std::optional<miniplc0::CompilationError> err;
   std::optional<miniplc0::Token> next;
 
@@ -152,7 +145,7 @@ std::optional<CompilationError> Analyser::analyseOperatorExpression(
     auto &current_op = next.value();
 
     auto rhs = OperatorItem();
-    err = analyserUnaryExpression(rhs);
+    err = analyserUnaryExpression(func, rhs);
     if (err.has_value()) return err;
 
     while (true) {
@@ -167,7 +160,7 @@ std::optional<CompilationError> Analyser::analyseOperatorExpression(
 
       current_op = next.value();
       // + 遇上 * ，递归，rhs变lhs
-      err = analyseOperatorExpression(rhs, current_op.GetType());
+      err = analyseOperatorExpression(func, rhs, current_op.GetType());
       if (err.has_value()) return err;
     }
 
@@ -180,30 +173,42 @@ std::optional<CompilationError> Analyser::analyseOperatorExpression(
   return {};
 }
 
-// <取反表达式>
-// negate_expr -> '-' expr
-std::optional<CompilationError> Analyser::analyseNegateExpression() {
-  std::optional<miniplc0::CompilationError> err;
-  std::optional<miniplc0::Token> next = nextToken();
-  if (!next.has_value() || next.value().GetType() != TokenType::MINUS_SIGN) {
-    return std::make_optional<CompilationError>(_current_pos,
-                                                ErrorCode::ErrCompiler);
-  }
+// // <取反表达式>
+// // negate_expr -> '-' expr
+// std::optional<CompilationError> Analyser::analyseNegateExpression() {
+//   std::optional<miniplc0::CompilationError> err;
+//   std::optional<miniplc0::Token> next = nextToken();
+//   if (!next.has_value() || next.value().GetType() != TokenType::MINUS_SIGN) {
+//     return std::make_optional<CompilationError>(_current_pos,
+//                                                 ErrorCode::ErrCompiler);
+//   }
 
-  err = analyseExpression();
-  if (err.has_value()) return err;
+//   err = analyseExpression();
+//   if (err.has_value()) return err;
 
-  return {};
-}
+//   return {};
+// }
 
 // <赋值表达式>
 // assign_expr -> l_expr '=' expr
-std::optional<CompilationError> Analyser::analyseAssignExpression() {
+std::optional<CompilationError> Analyser::analyseAssignExpression(
+    FunctionItem &func) {
   std::optional<miniplc0::CompilationError> err;
   std::optional<miniplc0::Token> next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::IDENTIFIER) {
     return std::make_optional<CompilationError>(_current_pos,
                                                 ErrorCode::ErrCompiler);
+  }
+
+  auto var_name = next.value().GetValueString();
+  auto var = _symbol_table_stack.getVariableByName(var_name);
+  if (!var.has_value()) {
+    return std::make_optional<CompilationError>(
+        _current_pos, ErrorCode::ErrNeedDeclareSymbol);
+  }
+  if (var.value().is_const) {
+    return std::make_optional<CompilationError>(_current_pos,
+                                                ErrorCode::ErrAssignToConstant);
   }
 
   next = nextToken();
@@ -212,30 +217,34 @@ std::optional<CompilationError> Analyser::analyseAssignExpression() {
                                                 ErrorCode::ErrCompiler);
   }
 
-  err = analyseExpression();
+  err = analyseExpression(func);
   if (err.has_value()) return err;
 
   return {};
 }
 
-// <类型转换表达式>
-// as_expr -> expr 'as' ty
-std::optional<CompilationError> Analyser::analyseAsExpression() {
-  std::optional<miniplc0::CompilationError> err;
-  std::optional<miniplc0::Token> next = nextToken();
-  return {};
-}
+// // <类型转换表达式>
+// // as_expr -> expr 'as' ty
+// std::optional<CompilationError> Analyser::analyseAsExpression() {
+//   std::optional<miniplc0::CompilationError> err;
+//   std::optional<miniplc0::Token> next = nextToken();
+//   return {};
+// }
 
 // <函数调用表达式>
-std::optional<CompilationError> Analyser::analyseCallExpression() {
+std::optional<CompilationError> Analyser::analyseCallExpression(
+    FunctionItem &func) {
   std::optional<miniplc0::CompilationError> err;
 
   std::optional<miniplc0::Token> next = nextToken();
-  
+
   if (!next.has_value() || next.value().GetType() != TokenType::IDENTIFIER) {
     return std::make_optional<CompilationError>(_current_pos,
                                                 ErrorCode::ErrNeedIdentifier);
   }
+
+  auto call_func_name = next.value().GetValueString();
+  auto call_func = _symbol_table_stack.getFunctionByName(call_func_name);
 
   next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::LEFT_BRACKET) {
@@ -244,42 +253,53 @@ std::optional<CompilationError> Analyser::analyseCallExpression() {
   }
 
   // 传入参数列表
-  next = nextToken();
-  if (next.has_value() && next.value().GetType() == TokenType::RIGHT_BRACKET) {
-    goto FINISH;
-  }
-  unreadToken();
-  
-  while (true) {
-    err = analyseExpression();
-    if (err.has_value()) return err;
+  // TODO
+  for (int i = 0; i < call_func.value().param_slots; ++i) {
+    auto param = call_func.value().params[i];
+    err = analyseExpression(func);
+    if (err.has_value())
+      return std::make_optional<CompilationError>(_current_pos,
+                                                  ErrorCode::ErrNeedIdentifier);
+
+    if (i == call_func.value().param_slots - 1) break;
+
     next = nextToken();
     if (!next.has_value() || next.value().GetType() != TokenType::COMMA) {
-      unreadToken();
-      break;
+      return std::make_optional<CompilationError>(_current_pos,
+                                                  ErrorCode::ErrNeedIdentifier);
     }
   }
-  
+
+  next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::RIGHT_BRACKET) {
     return std::make_optional<CompilationError>(_current_pos,
                                                 ErrorCode::ErrNeedBracket);
   }
 
-  FINISH:
   return {};
 }
 
 // <字面量表达式>
-std::optional<CompilationError> Analyser::analyseLiteralExpression() {
+std::optional<CompilationError> Analyser::analyseLiteralExpression(
+    FunctionItem &func) {
   std::optional<miniplc0::CompilationError> err;
   std::optional<miniplc0::Token> next = nextToken();
 
   if (next.has_value() &&
       next.value().GetType() == TokenType::UNSIGNED_INTEGER) {
+    // 64 位有符号整数 int
+    auto val_str = next.value().GetValueString();
+    int64_t val = StringToUnsignedInt64(val_str);
+
+    printf("Push(%lld)\n", val);
   } else if (next.has_value() &&
              next.value().GetType() == TokenType::UNSIGNED_DOUBLE) {
+    // TODO
+    auto val_str = next.value().GetValueString();
+    double val = StringToUnsignedDouble(val_str);
+    printf("Push(%lf)\n", val);
   } else if (next.has_value() &&
-             next.value().GetType() == TokenType::SCIENCE_DOUBLE) {
+             next.value().GetType() == TokenType::CHAR_LITERAL) {
   } else if (next.has_value() &&
              next.value().GetType() == TokenType::STRING_LITERAL) {
   } else {
@@ -291,20 +311,42 @@ std::optional<CompilationError> Analyser::analyseLiteralExpression() {
 }
 
 // <标识符表达式>
-std::optional<CompilationError> Analyser::analyseIdentExpression() {
+std::optional<CompilationError> Analyser::analyseIdentExpression(
+    FunctionItem &func) {
   std::optional<miniplc0::CompilationError> err;
   std::optional<miniplc0::Token> next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::IDENTIFIER) {
     return std::make_optional<CompilationError>(_current_pos,
                                                 ErrorCode::ErrNeedIdentifier);
   }
-  // auto var = 
-  std::cout << "PUSH" << next.value().GetValueString() << std::endl;
+  // auto var =
+  auto ident_name = next.value().GetValueString();
+  auto var = _symbol_table_stack.getVariableByName(ident_name);
+  if (!var.has_value()) {
+    return std::make_optional<CompilationError>(
+        _current_pos, ErrorCode::ErrNeedDeclareSymbol);
+  }
+  switch (var.value().vt) {
+    case VariableType::LOCAL:
+      printf("LocA(%d)\n", var.value().id);
+      break;
+    case VariableType::GLOBAL:
+      printf("GlobA(%d)\n", var.value().id);
+      break;
+    case VariableType::PARAM:
+      printf("ArgA(%d)\n", var.value().id);
+      break;
+    default:
+      return std::make_optional<CompilationError>(_current_pos,
+                                                  ErrorCode::ErrCompiler);
+  }
+
   return {};
 }
 
 // <括号表达式>
-std::optional<CompilationError> Analyser::analyseBracketExpression() {
+std::optional<CompilationError> Analyser::analyseBracketExpression(
+    FunctionItem &func) {
   std::optional<miniplc0::CompilationError> err;
   std::optional<miniplc0::Token> next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::LEFT_BRACKET) {
@@ -312,7 +354,7 @@ std::optional<CompilationError> Analyser::analyseBracketExpression() {
                                                 ErrorCode::ErrNeedBracket);
   }
 
-  err = analyseExpression();
+  err = analyseExpression(func);
   if (err.has_value()) return err;
 
   next = nextToken();

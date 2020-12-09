@@ -9,9 +9,10 @@
 
 #include "error/error.h"
 #include "instruction/instruction.h"
-#include "item.h"
+#include "ast/item.h"
 #include "symbol/symbol_table_stack.h"
 #include "tokenizer/token.h"
+#include "utils.h"
 
 namespace miniplc0 {
 
@@ -41,53 +42,57 @@ class Analyser final {
 
  private:
   // 所有的递归子程序
-  // <常表达式>
-  // 这里的 out 是常表达式的值
-  std::optional<CompilationError> analyseConstantExpression(int32_t &out);
 
   /* 以下为表达式 */
 
   // <表达式>
-  std::optional<CompilationError> analyseExpression();
+  std::optional<CompilationError> analyseExpression(FunctionItem &);
   // <项表达式>
-  std::optional<CompilationError> analyserItemExpression(OUT OperatorItem &);
+  std::optional<CompilationError> analyserItemExpression(FunctionItem &,
+                                                         OUT OperatorItem &);
   // <一元运算符表达式>
-  std::optional<CompilationError> analyserUnaryExpression(OUT OperatorItem &);
+  std::optional<CompilationError> analyserUnaryExpression(FunctionItem &,
+                                                          OUT OperatorItem &);
   // <运算符表达式>
   std::optional<CompilationError> analyseOperatorExpression(
-      IN OperatorItem &, IN TokenType = TokenType::NULL_TOKEN);
-  // <取反表达式> negate_expr -> '-' expr
-  std::optional<CompilationError> analyseNegateExpression();
+      FunctionItem &, IN OperatorItem &, IN TokenType = TokenType::NULL_TOKEN);
+  // // <取反表达式> negate_expr -> '-' expr
+  // std::optional<CompilationError> analyseNegateExpression();
   // <赋值表达式>assign_expr -> l_expr '=' expr
-  std::optional<CompilationError> analyseAssignExpression();
-  // <类型转换表达式> as_expr -> expr 'as' ty
-  std::optional<CompilationError> analyseAsExpression();
+  std::optional<CompilationError> analyseAssignExpression(FunctionItem &);
+  // // <类型转换表达式> as_expr -> expr 'as' ty
+  // std::optional<CompilationError> analyseAsExpression();
   // <函数调用表达式>
-  std::optional<CompilationError> analyseCallExpression();
+  std::optional<CompilationError> analyseCallExpression(FunctionItem &);
   // <字面量表达式>
-  std::optional<CompilationError> analyseLiteralExpression();
+  std::optional<CompilationError> analyseLiteralExpression(FunctionItem &);
   // <标识符表达式>
-  std::optional<CompilationError> analyseIdentExpression();
+  std::optional<CompilationError> analyseIdentExpression(FunctionItem &);
   // <括号表达式>
-  std::optional<CompilationError> analyseBracketExpression();
+  std::optional<CompilationError> analyseBracketExpression(FunctionItem &);
 
   /* 以下为语句 */
   // <语句>
-  std::optional<CompilationError> analyseStatement(FunctionItem &);
+  std::optional<CompilationError> analyseStatement(FunctionItem &,
+                                                   bool &need_return);
   // <表达式语句>
   std::optional<CompilationError> analyseExprStatement(FunctionItem &);
   // <变量声明语句>
-  std::optional<CompilationError> analyseDeclVariableStatement(FunctionItem &);
+  std::optional<CompilationError> analyseDeclVariableStatement(FunctionItem &,
+                                                               VariableType);
   // <常量声明语句>
-  std::optional<CompilationError> analyseDeclConstStatement(FunctionItem &);
+  std::optional<CompilationError> analyseDeclConstStatement(FunctionItem &,
+                                                            VariableType);
   // <if 语句>
-  std::optional<CompilationError> analyseIfStatement(FunctionItem &);
+  std::optional<CompilationError> analyseIfStatement(FunctionItem &,
+                                                     bool &need_return);
   // <while 语句>
   std::optional<CompilationError> analyseWhileStatement(FunctionItem &);
   // <return 语句>
   std::optional<CompilationError> analyseReturnStatement(FunctionItem &);
   // <代码块>
-  std::optional<CompilationError> analyseBlockStatement(FunctionItem &);
+  std::optional<CompilationError> analyseBlockStatement(FunctionItem &,
+                                                        bool &need_return);
   // <空语句>
   std::optional<CompilationError> analyseEmptyStatement();
 
@@ -103,9 +108,8 @@ class Analyser final {
   std::optional<CompilationError> analyseProgram();
 
  private:
-  /* 一些简单工具函数 */
-  bool isIntegerOverflow(std::string s, int prefix);
   // Token 缓冲区相关操作
+  std::shared_ptr<FunctionItem> _p_current_function;
 
   // 返回下一个 token
   std::optional<Token> nextToken();
@@ -119,7 +123,6 @@ class Analyser final {
   std::size_t _offset;
   std::vector<Instruction> _instructions;
   std::pair<uint64_t, uint64_t> _current_pos;
-
 };
 
 }  // namespace miniplc0

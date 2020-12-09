@@ -40,7 +40,7 @@ std::optional<CompilationError> Analyser::analyseFunction() {
 
   // 进入SubScope
   _symbol_table_stack.pushNextScope();
-  
+
   // 判断一下是否有参数
   next = nextToken();
   if (next.has_value() && next.value().GetType() == TokenType::RIGHT_BRACKET) {
@@ -58,7 +58,7 @@ std::optional<CompilationError> Analyser::analyseFunction() {
                                                 ErrorCode::ErrNeedBracket);
   }
 
-  ARROW:
+ARROW:
   // ->
   next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::ARROW) {
@@ -73,19 +73,26 @@ std::optional<CompilationError> Analyser::analyseFunction() {
                                                 ErrorCode::ErrNeedType);
   }
   func.return_type = next.value().GetType();
+  func.need_return = false;
   if (next.value().GetType() != TokenType::VOID) {
     func.return_slots++;
+    func.need_return = true;
   }
 
-
   // body
-  err = analyseBlockStatement(func);
+  
+  err = analyseBlockStatement(func, func.need_return);
   if (err.has_value()) return err;
 
   // 退出SubScope
   _symbol_table_stack.popCurrentScope();
-
+  
+  // _symbol_table_stack.getCurrentScopeLevel();
   // TODO
+  if (func.need_return) {
+    return std::make_optional<CompilationError>(_current_pos,
+                                                ErrorCode::ErrNeedReturn);
+  }
   _symbol_table_stack.declareFunction(fn_token, func);
 
   if (err.has_value()) return err;
@@ -97,11 +104,13 @@ std::optional<CompilationError> Analyser::analyseFunction() {
 std::optional<CompilationError> Analyser::analyseFunctionParameter(
     FunctionItem &func) {
   std::optional<miniplc0::CompilationError> err;
-  auto item = VariableItem();
+  auto var = VariableItem();
+  var.vt = VariableType::PARAM;
+  var.id = func.param_slots;
 
   auto next = nextToken();
   if (next.has_value() && next.value().GetType() == TokenType::CONST) {
-    item.is_const = true;
+    var.is_const = true;
     next = nextToken();
   }
 
@@ -111,11 +120,12 @@ std::optional<CompilationError> Analyser::analyseFunctionParameter(
                                                 ErrorCode::ErrNeedIdentifier);
   }
 
-  if (_symbol_table_stack.isLocalVariableDeclared(next.value().GetValueString())) {
+  if (_symbol_table_stack.isLocalVariableDeclared(
+          next.value().GetValueString())) {
     return std::make_optional<CompilationError>(
         _current_pos, ErrorCode::ErrDuplicateDeclaration);
   }
-  
+
   next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::COLON) {
     return std::make_optional<CompilationError>(_current_pos,
@@ -123,16 +133,16 @@ std::optional<CompilationError> Analyser::analyseFunctionParameter(
   }
 
   next = nextToken();
-  
+
   if (!next.has_value() || !next.value().isTokenAType()) {
     return std::make_optional<CompilationError>(_current_pos,
                                                 ErrorCode::ErrNeedType);
   }
-  item.type = next.value().GetType();
-  
-  _symbol_table_stack.declareVariable(var_token, item);
+  var.type = next.value().GetType();
 
-  func.params.push_back(item);
+  _symbol_table_stack.declareVariable(var_token, var);
+
+  func.params.push_back(var);
   func.param_slots++;
 
   return {};

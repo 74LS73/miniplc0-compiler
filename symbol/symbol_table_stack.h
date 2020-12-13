@@ -34,9 +34,9 @@ class SymbolTableStack final {
   void declareFunction(const Token &tk, FunctionItem &);
 
   int getVariableNumber();
-  std::optional<VariableItem> getVariableByName(std::string &);
-  std::optional<VariableItem> getGlobalVariableByName(std::string &);
-  std::optional<FunctionItem> getFunctionByName(std::string &);
+  std::optional<VariableItem> getVariableByName(std::string);
+  std::optional<VariableItem> getGlobalVariableByName(std::string);
+  std::optional<FunctionItem> getFunctionByName(std::string);
   int getCurrentScopeLevel();
 
  private:

@@ -12,8 +12,8 @@ namespace miniplc0 {
 //     | return_stmt
 //     | block_stmt
 //     | empty_stmt
-std::optional<CompilationError> Analyser::analyseStatement(FunctionItem &func,
-                                                           bool &need_return) {
+std::optional<CompilationError> Analyser::analyseStatement(
+    FunctionItem &func, bool &need_return, std::shared_ptr<Item> lhs) {
   std::optional<miniplc0::CompilationError> err;
   auto next = nextToken();
 
@@ -24,40 +24,40 @@ std::optional<CompilationError> Analyser::analyseStatement(FunctionItem &func,
   switch (next.value().GetType()) {
     case TokenType::IF:
       unreadToken();
-      err = analyseIfStatement(func, need_return);
+      err = analyseIfStatement(func, need_return, lhs);
       if (err.has_value()) return err;
       break;
     case TokenType::WHILE:
       unreadToken();
-      err = analyseWhileStatement(func);
+      err = analyseWhileStatement(func, lhs);
       if (err.has_value()) return err;
       break;
     case TokenType::RETURN:
       unreadToken();
-      err = analyseReturnStatement(func);
+      err = analyseReturnStatement(func, lhs);
       if (err.has_value()) return err;
       need_return = false;
       break;
     case TokenType::LEFT_BRACE:
       unreadToken();
-      err = analyseBlockStatement(func, need_return);
+      err = analyseBlockStatement(func, need_return, lhs);
       if (err.has_value()) return err;
       break;
     case TokenType::LET:
       unreadToken();
-      err = analyseDeclVariableStatement(func, VariableType::LOCAL);
+      err = analyseDeclVariableStatement(func, VariableType::LOCAL, lhs);
       if (err.has_value()) return err;
       break;
     case TokenType::CONST:
       unreadToken();
-      err = analyseDeclConstStatement(func, VariableType::LOCAL);
+      err = analyseDeclConstStatement(func, VariableType::LOCAL, lhs);
       if (err.has_value()) return err;
       break;
     case TokenType::SEMICOLON:
       break;
     default:
       unreadToken();
-      err = analyseExprStatement(func);
+      err = analyseExprStatement(func, lhs);
       if (err.has_value()) return err;
       break;
   }
@@ -66,8 +66,7 @@ std::optional<CompilationError> Analyser::analyseStatement(FunctionItem &func,
 
 // expr_stmt -> expr ';'
 std::optional<CompilationError> Analyser::analyseExprStatement(
-    FunctionItem &func) {
-      auto lhs = std::shared_ptr<Item>(new Item());
+    FunctionItem &func, std::shared_ptr<Item> lhs) {
   auto err = analyseExpression(lhs);
   if (err.has_value()) return err;
 
@@ -81,7 +80,7 @@ std::optional<CompilationError> Analyser::analyseExprStatement(
 
 // let_decl_stmt -> 'let' IDENT ':' ty ('=' expr)? ';'
 std::optional<CompilationError> Analyser::analyseDeclVariableStatement(
-    FunctionItem &func, VariableType vt) {
+    FunctionItem &func, VariableType vt, std::shared_ptr<Item> lhs) {
   // 未初始化统一为0
   auto var = VariableItem();
   var.vt = vt;
@@ -132,9 +131,10 @@ std::optional<CompilationError> Analyser::analyseDeclVariableStatement(
 
   // ASSIGN
   next = nextToken();
+  auto expr_code = std::shared_ptr<Item>(new Item());
   if (next.has_value() && next.value().GetType() == TokenType::ASSIGN) {
-    auto lhs = std::shared_ptr<Item>(new Item());
-    err = analyseExpression(lhs);
+    
+    err = analyseExpression(expr_code);
     if (err.has_value()) return err;
     next = nextToken();
   }
@@ -145,13 +145,18 @@ std::optional<CompilationError> Analyser::analyseDeclVariableStatement(
   _symbol_table_stack.declareVariable(var_token, var);
   ++func.local_slots;
 
+  //Code Gen
+  lhs->p_code_gen.generateGetVariable(var.id, var.vt);
+  lhs->p_code_gen += expr_code->p_code_gen;
+  lhs->p_code_gen.generateStore();
+  //END
   return {};
 }
 
 // const_decl_stmt -> 'const' IDENT ':' ty '=' expr ';'
 // decl_stmt -> let_decl_stmt | const_decl_stmt
 std::optional<CompilationError> Analyser::analyseDeclConstStatement(
-    FunctionItem &func, VariableType vt) {
+    FunctionItem &func, VariableType vt, std::shared_ptr<Item> lhs) {
   auto var = VariableItem();
   var.vt = vt;
   var.id = func.local_slots;
@@ -197,8 +202,9 @@ std::optional<CompilationError> Analyser::analyseDeclConstStatement(
     return std::make_optional<CompilationError>(
         _current_pos, ErrorCode::ErrConstantNeedValue);
   }
-  auto lhs = std::shared_ptr<Item>(new Item());
-  err = analyseExpression(lhs);
+
+  auto expr_code = std::shared_ptr<Item>(new Item());
+  err = analyseExpression(expr_code);
   if (err.has_value()) return err;
   next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::SEMICOLON)
@@ -208,6 +214,11 @@ std::optional<CompilationError> Analyser::analyseDeclConstStatement(
   _symbol_table_stack.declareVariable(var_token, var);
   ++func.local_slots;
 
+  //Code Gen
+  lhs->p_code_gen.generateGetVariable(var.id, var.vt);
+  lhs->p_code_gen += expr_code->p_code_gen;
+  lhs->p_code_gen.generateStore();
+  //END
   return {};
 }
 
@@ -216,21 +227,24 @@ std::optional<CompilationError> Analyser::analyseDeclConstStatement(
 // //              |     if_block           else_block
 // //              condition
 std::optional<CompilationError> Analyser::analyseIfStatement(
-    FunctionItem &func, bool &need_return) {
+    FunctionItem &func, bool &need_return, std::shared_ptr<Item> lhs) {
   auto next = nextToken();
   std::optional<miniplc0::CompilationError> err;
   if (!next.has_value() || next.value().GetType() != TokenType::IF) {
     return std::make_optional<CompilationError>(
         _current_pos, ErrorCode::ErrNeedDeclareSymbol);
   }
-  auto lhs = std::shared_ptr<Item>(new Item());
+
   err = analyseExpression(lhs);
   if (err.has_value()) return err;
 
+  auto if_gen = std::shared_ptr<miniplc0::Item>(new Item());
   bool if_need_return = true && need_return;
-  err = analyseBlockStatement(func, if_need_return);
+  err = analyseBlockStatement(func, if_need_return, if_gen);
   if (err.has_value()) return err;
 
+
+  auto else_gen = std::shared_ptr<miniplc0::Item>(new Item());
   bool else_need_return = true && need_return;
   next = nextToken();
   if (next.has_value() && next.value().GetType() == TokenType::ELSE) {
@@ -238,17 +252,25 @@ std::optional<CompilationError> Analyser::analyseIfStatement(
     if (next.has_value() && next.value().GetType() == TokenType::IF) {
       // else if
       unreadToken();
-      err = analyseIfStatement(func, else_need_return);
+      err = analyseIfStatement(func, else_need_return, else_gen);
       if (err.has_value()) return err;
     } else {
       // else
       unreadToken();
-      analyseBlockStatement(func, else_need_return);
+      analyseBlockStatement(func, else_need_return, else_gen);
       if (err.has_value()) return err;
     }
+    else_gen->p_code_gen.generateBr(0);
   } else {
     unreadToken();
   }
+
+  // IF_ELSE
+  lhs->p_code_gen.generateBrTrue(1);
+  lhs->p_code_gen.generateBr(if_gen->p_code_gen.size());
+  lhs->p_code_gen += if_gen->p_code_gen;
+  lhs->p_code_gen += else_gen->p_code_gen;
+  // END
 
   need_return = if_need_return || else_need_return;
   return {};
@@ -258,19 +280,19 @@ std::optional<CompilationError> Analyser::analyseIfStatement(
 // //                    ^~~~ ^~~~~~~~~~while_block
 // //                     condition
 std::optional<CompilationError> Analyser::analyseWhileStatement(
-    FunctionItem &func) {
+    FunctionItem &func, std::shared_ptr<Item> lhs) {
   auto next = nextToken();
   std::optional<miniplc0::CompilationError> err;
   if (!next.has_value() || next.value().GetType() != TokenType::WHILE) {
     return std::make_optional<CompilationError>(
         _current_pos, ErrorCode::ErrNeedDeclareSymbol);
   }
-  auto lhs = std::shared_ptr<Item>(new Item());
+
   err = analyseExpression(lhs);
   if (err.has_value()) return err;
 
   bool while_need_return = false;
-  err = analyseBlockStatement(func, while_need_return);
+  err = analyseBlockStatement(func, while_need_return, lhs);
   if (err.has_value()) return err;
 
   return {};
@@ -278,7 +300,7 @@ std::optional<CompilationError> Analyser::analyseWhileStatement(
 
 // return_stmt -> 'return' expr? ';'
 std::optional<CompilationError> Analyser::analyseReturnStatement(
-    FunctionItem &func) {
+    FunctionItem &func, std::shared_ptr<Item> lhs) {
   auto next = nextToken();
   std::optional<miniplc0::CompilationError> err;
   if (!next.has_value() || next.value().GetType() != TokenType::RETURN) {
@@ -286,25 +308,26 @@ std::optional<CompilationError> Analyser::analyseReturnStatement(
                                                 ErrorCode::ErrNeedReturn);
   }
 
-  next = nextToken();
-  if (!next.has_value() || next.value().GetType() != TokenType::SEMICOLON) {
-    unreadToken();
-    auto lhs = std::shared_ptr<Item>(new Item());
+  if (func.return_slots) {
+    lhs->p_code_gen.generateGetVariable(0, VariableType::PARAM);
     err = analyseExpression(lhs);
     if (err.has_value()) return err;
-    next = nextToken();
+    lhs->p_code_gen.generateStore();
+    lhs->p_code_gen.generateRet();
   }
-  if (next.has_value() && next.value().GetType() == TokenType::SEMICOLON) {
-    return {};
-  } else {
+
+  next = nextToken();
+  if (!next.has_value() || next.value().GetType() != TokenType::SEMICOLON) {
     return std::make_optional<CompilationError>(_current_pos,
                                                 ErrorCode::ErrNeedSemicolon);
   }
+
+  return {};
 }
 
 // block_stmt -> '{' stmt* '}'
 std::optional<CompilationError> Analyser::analyseBlockStatement(
-    FunctionItem &func, bool &need_return) {
+    FunctionItem &func, bool &need_return, std::shared_ptr<Item> lhs) {
   auto next = nextToken();
   std::optional<miniplc0::CompilationError> err;
   if (!next.has_value() || next.value().GetType() != TokenType::LEFT_BRACE) {
@@ -312,7 +335,7 @@ std::optional<CompilationError> Analyser::analyseBlockStatement(
                                                 ErrorCode::ErrNeedBrace);
   }
   while (true) {
-    err = analyseStatement(func, need_return);
+    err = analyseStatement(func, need_return, lhs);
     if (err.has_value()) return err;
     next = nextToken();
     if (next.has_value() && next.value().GetType() == TokenType::RIGHT_BRACE) {

@@ -21,7 +21,7 @@ std::optional<CompilationError> Analyser::analyseExpression(
     if (next.has_value() && next.value().GetType() == TokenType::ASSIGN) {
       unreadToken();
       unreadToken();
-      err = analyseAssignExpression();
+      err = analyseAssignExpression(lhs);
       if (err.has_value()) return err;
 
       return {};
@@ -35,8 +35,6 @@ std::optional<CompilationError> Analyser::analyseExpression(
 
   err = analyseOperatorExpression(lhs);
   if (err.has_value()) return err;
-
-  lhs->p_code_gen.show();
 
   return {};
 }
@@ -112,6 +110,7 @@ std::optional<CompilationError> Analyser::analyserUnaryExpression(
   }
 
   // AS
+  int as_flag = false;
   while (true) {
     next = nextToken();
     if (!next.has_value() || next.value().GetType() != TokenType::AS) {
@@ -123,13 +122,16 @@ std::optional<CompilationError> Analyser::analyserUnaryExpression(
         return std::make_optional<CompilationError>(_current_pos,
                                                     ErrorCode::ErrNeedType);
       }
+      as_flag = true;
     }
   }
   // TODO
   // 显然只有最后一个as的值有用
-  auto as_type = next.value().GetType();
-  lhs->p_code_gen.generateAs(lhs->type, as_type);
-
+  if (as_flag) {
+    auto as_type = next.value().GetType();
+    lhs->type = as_type;
+    lhs->p_code_gen.generateAs(lhs->type, as_type);
+  }
   return {};
 }
 
@@ -186,7 +188,8 @@ std::optional<CompilationError> Analyser::analyseOperatorExpression(
 
 // <赋值表达式>
 // assign_expr -> l_expr '=' expr
-std::optional<CompilationError> Analyser::analyseAssignExpression() {
+std::optional<CompilationError> Analyser::analyseAssignExpression(
+    std::shared_ptr<Item> lhs) {
   std::optional<miniplc0::CompilationError> err;
   std::optional<miniplc0::Token> next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::IDENTIFIER) {
@@ -205,15 +208,18 @@ std::optional<CompilationError> Analyser::analyseAssignExpression() {
                                                 ErrorCode::ErrAssignToConstant);
   }
 
+  lhs->p_code_gen.generateGetVariable(var->id, var->vt);
+
   next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::ASSIGN) {
     return std::make_optional<CompilationError>(_current_pos,
                                                 ErrorCode::ErrCompiler);
   }
-  auto lhs = std::shared_ptr<Item>(new Item());
+
   err = analyseExpression(lhs);
   if (err.has_value()) return err;
 
+  lhs->p_code_gen.generateStore();
   return {};
 }
 
@@ -246,7 +252,7 @@ std::optional<CompilationError> Analyser::analyseCallExpression(
                                                 ErrorCode::ErrNeedBracket);
   }
 
-  printf("StackAlloc(%d)\n", call_func.value().return_slots);
+  lhs->p_code_gen.generateStackAlloc(call_func.value().return_slots);
 
   // 传入参数列表
   // TODO
@@ -276,8 +282,8 @@ std::optional<CompilationError> Analyser::analyseCallExpression(
   //    26: Push(2)
   //    27: Push(22)
   //    28: Call(1)
+  lhs->p_code_gen.generateCallFunction(call_func->id);
 
-  printf("Call(%d)\n", call_func.value().id);
   return {};
 }
 
@@ -293,6 +299,7 @@ std::optional<CompilationError> Analyser::analyseLiteralExpression(
     auto val_str = next.value().GetValueString();
     int64_t val = StringToUnsignedInt64(val_str);
 
+    lhs->type = TokenType::INT;
     lhs->p_code_gen.generateInt64(val);
 
   } else if (next.has_value() &&
@@ -301,6 +308,7 @@ std::optional<CompilationError> Analyser::analyseLiteralExpression(
     auto val_str = next.value().GetValueString();
     double val = StringToUnsignedDouble(val_str);
 
+    lhs->type = TokenType::DOUBLE;
     lhs->p_code_gen.generateDouble(val);
 
   } else if (next.has_value() &&

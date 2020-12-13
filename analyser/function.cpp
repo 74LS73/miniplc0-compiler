@@ -80,8 +80,8 @@ ARROW:
   }
 
   // body
-  
-  err = analyseBlockStatement(func, func.need_return);
+  auto lhs = std::shared_ptr<Item>(new Item());
+  err = analyseBlockStatement(func, func.need_return, lhs);
   if (err.has_value()) return err;
 
   // 退出SubScope
@@ -96,7 +96,9 @@ ARROW:
   _symbol_table_stack.declareFunction(fn_token, func);
 
   if (err.has_value()) return err;
-
+  
+  std::cout << "====" << func.name << "===" << std::endl;
+  lhs->p_code_gen.show();
   return {};
 }
 

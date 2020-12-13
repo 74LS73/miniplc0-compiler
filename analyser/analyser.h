@@ -55,46 +55,55 @@ class Analyser final {
       OUT std::shared_ptr<Item>);
   // <运算符表达式>
   std::optional<CompilationError> analyseOperatorExpression(
-      IN std::shared_ptr<Item>, IN TokenType = TokenType::NULL_TOKEN);
+      OUT std::shared_ptr<Item>, IN TokenType = TokenType::NULL_TOKEN);
   // // <取反表达式> negate_expr -> '-' expr
   // std::optional<CompilationError> analyseNegateExpression();
   // <赋值表达式>assign_expr -> l_expr '=' expr
-  std::optional<CompilationError> analyseAssignExpression();
+  std::optional<CompilationError> analyseAssignExpression(
+      std::shared_ptr<Item>);
   // // <类型转换表达式> as_expr -> expr 'as' ty
   // std::optional<CompilationError> analyseAsExpression();
   // <函数调用表达式>
-  std::optional<CompilationError> analyseCallExpression(std::shared_ptr<Item>);
+  std::optional<CompilationError> analyseCallExpression(
+      OUT std::shared_ptr<Item>);
   // <字面量表达式>
   std::optional<CompilationError> analyseLiteralExpression(
-      std::shared_ptr<Item>);
+      OUT std::shared_ptr<Item>);
   // <标识符表达式>
-  std::optional<CompilationError> analyseIdentExpression(std::shared_ptr<Item>);
+  std::optional<CompilationError> analyseIdentExpression(
+      OUT std::shared_ptr<Item>);
   // <括号表达式>
   std::optional<CompilationError> analyseBracketExpression(
-      std::shared_ptr<Item>);
+      OUT std::shared_ptr<Item>);
 
   /* 以下为语句 */
   // <语句>
   std::optional<CompilationError> analyseStatement(FunctionItem &,
-                                                   bool &need_return);
+                                                   bool &need_return,
+                                                   OUT std::shared_ptr<Item>);
   // <表达式语句>
-  std::optional<CompilationError> analyseExprStatement(FunctionItem &);
+  std::optional<CompilationError> analyseExprStatement(
+      FunctionItem &, OUT std::shared_ptr<Item>);
   // <变量声明语句>
-  std::optional<CompilationError> analyseDeclVariableStatement(FunctionItem &,
-                                                               VariableType);
+  std::optional<CompilationError> analyseDeclVariableStatement(
+      FunctionItem &, VariableType, OUT std::shared_ptr<Item>);
   // <常量声明语句>
-  std::optional<CompilationError> analyseDeclConstStatement(FunctionItem &,
-                                                            VariableType);
+  std::optional<CompilationError> analyseDeclConstStatement(
+      FunctionItem &, VariableType, std::shared_ptr<Item> lhs);
   // <if 语句>
   std::optional<CompilationError> analyseIfStatement(FunctionItem &,
-                                                     bool &need_return);
+                                                     bool &need_return,
+                                                     OUT std::shared_ptr<Item>);
   // <while 语句>
-  std::optional<CompilationError> analyseWhileStatement(FunctionItem &);
+  std::optional<CompilationError> analyseWhileStatement(
+      FunctionItem &, OUT std::shared_ptr<Item>);
   // <return 语句>
-  std::optional<CompilationError> analyseReturnStatement(FunctionItem &);
+  std::optional<CompilationError> analyseReturnStatement(
+      FunctionItem &, OUT std::shared_ptr<Item>);
   // <代码块>
   std::optional<CompilationError> analyseBlockStatement(FunctionItem &,
-                                                        bool &need_return);
+                                                        bool &need_return,
+                                                        std::shared_ptr<Item>);
   // <空语句>
   std::optional<CompilationError> analyseEmptyStatement();
 

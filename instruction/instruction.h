@@ -5,7 +5,7 @@
 
 namespace miniplc0 {
 
-enum Operation { ILL = 0, LIT, LOD, STO, ADD, SUB, MUL, DIV, WRT };
+enum class Operation { ILL = 0, LIT, LOD, STO, ADD, SUB, MUL, DIV, WRT };
 enum ISA {
   NOP = 0x00,
   PUSH,
@@ -76,6 +76,7 @@ class Instruction final {
 
  public:
   Instruction(ISA opr, int64_t x) : _opr(opr), _x(x) {}
+  Instruction(ISA opr) : _opr(opr), _x(0) {}
 
   Instruction() : Instruction(ISA::NOP, 0) {}
   Instruction(const Instruction &i) {

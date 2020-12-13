@@ -5,6 +5,7 @@
 #include <memory>  // for std::shared_ptr
 #include <string>
 
+#include "symbol/type.h"
 #include "instruction/instruction.h"
 #include "tokenizer/token.h"
 #include "generator/generator.h"
@@ -18,15 +19,6 @@ namespace miniplc0 {
 
 // enum ItemType { VOID_ITEM, INT_ITEM, DOUBLE_ITEM, CHAR_ITEM, STRING_ITEM };
 
-#ifndef VARIABLE_TYPE
-#define VARIABLE_TYPE
-enum VariableType {
-  LOCAL,
-  GLOBAL,
-  PARAM
-};
-#endif
-
 struct Item {
   TokenType type;
   Generator p_code_gen;
@@ -36,7 +28,7 @@ struct Item {
 
 
 struct VariableItem {
-  int32_t id;
+  int64_t id;
   TokenType type;
   bool is_const;
   VariableType vt;
@@ -52,13 +44,13 @@ struct VariableItem {
  */
 
 struct FunctionItem {
-  int32_t id;
+  int64_t id;
   std::string name;
-  int32_t param_slots;
+  int64_t param_slots;
   std::vector<VariableItem> params;
-  int32_t return_slots;
+  int64_t return_slots;
   TokenType return_type;
-  int32_t local_slots;
+  int64_t local_slots;
   bool need_return;
   std::vector<Instruction> body;
 };

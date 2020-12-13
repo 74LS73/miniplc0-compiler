@@ -18,6 +18,7 @@ set(lib_src
 	tokenizer/tokenizer.cpp
 	tokenizer/utils.hpp
 	error/error.h
+	symbol/type.h
 	symbol/symbol_table.h
 	symbol/symbol_table.cpp
 	symbol/symbol_table_stack.h

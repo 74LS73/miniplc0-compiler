@@ -29,6 +29,7 @@ struct Item {
 
 struct VariableItem {
   int64_t id;
+  std::string name;
   TokenType type;
   bool is_const;
   VariableType vt;

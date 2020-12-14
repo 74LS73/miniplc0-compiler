@@ -29,9 +29,9 @@ class SymbolTableStack final {
   bool isFunctionDeclared(const std::string &);
   bool isGlobalVariableDeclared(const std::string &);
 
-  void declareVariable(const Token &tk, VariableItem &);
-  void declareGlobalVariable(const Token &tk, VariableItem &);
-  void declareFunction(const Token &tk, FunctionItem &);
+  void declareVariable(VariableItem &);
+  void declareGlobalVariable(VariableItem &);
+  void declareFunction(FunctionItem &);
 
   int getVariableNumber();
   std::optional<VariableItem> getVariableByName(std::string);

@@ -34,17 +34,16 @@ bool SymbolTableStack::isGlobalVariableDeclared(const std::string &token_name) {
   return _symbol_table_stack[_global_scope_level].hasVariable(token_name);
 }
 
-void SymbolTableStack::declareVariable(const Token &tk, VariableItem &item) {
-  getCurrentTable().addVariable(tk, item);
+void SymbolTableStack::declareVariable(VariableItem &item) {
+  getCurrentTable().addVariable(item);
 }
 
-void SymbolTableStack::declareGlobalVariable(const Token &tk,
-                                             VariableItem &item) {
-  getCurrentTable().addVariable(tk, item);
+void SymbolTableStack::declareGlobalVariable(VariableItem &item) {
+  getCurrentTable().addVariable(item);
 }
 
-void SymbolTableStack::declareFunction(const Token &tk, FunctionItem &item) {
-  getCurrentTable().addFunction(tk, item);
+void SymbolTableStack::declareFunction(FunctionItem &item) {
+  getCurrentTable().addFunction(item);
 }
 
 std::optional<VariableItem> SymbolTableStack::getVariableByName(

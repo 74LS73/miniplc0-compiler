@@ -30,11 +30,11 @@ class SymbolTable final {
   
   // helper function
   template<typename T> 
-  void _add(const Token &tk, std::map<std::string, T> &mp, T item, int &);
+  void _add(std::map<std::string, T> &mp, T item, int &);
   
  public:
-  void addVariable(const Token &tk, VariableItem item);
-  void addFunction(const Token &tk, FunctionItem item);
+  void addVariable(VariableItem item);
+  void addFunction(FunctionItem item);
 
   bool hasFunction(const std::string &);
   bool hasVariable(const std::string &);

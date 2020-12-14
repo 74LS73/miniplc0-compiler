@@ -3,20 +3,18 @@
 namespace miniplc0 {
 
 template <typename T>
-void SymbolTable::_add(const Token &tk, std::map<std::string, T> &mp, T item,
-                       int &_nextTokenIndex) {
-  if (tk.GetType() != TokenType::IDENTIFIER)
-    DieAndPrint("only identifier can be added to the table.");
-  mp[tk.GetValueString()] = item;
+void SymbolTable::_add(std::map<std::string, T> &mp,
+                       T item, int &_nextTokenIndex) {
+  mp[item.name] = item;
   _nextTokenIndex++;
 }
 
-void SymbolTable::addVariable(const Token &tk, VariableItem item) {
-  _add(tk, _vars, item, _nextFunctionIndex);
+void SymbolTable::addVariable(VariableItem item) {
+  _add(_vars, item, _nextFunctionIndex);
 }
 
-void SymbolTable::addFunction(const Token &tk, FunctionItem item) {
-  _add(tk, _function, item, _nextFunctionIndex);
+void SymbolTable::addFunction(FunctionItem item) {
+  _add(_function, item, _nextFunctionIndex);
 }
 
 bool SymbolTable::hasFunction(const std::string &s) {

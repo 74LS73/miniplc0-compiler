@@ -31,6 +31,9 @@ class Generator final {
   void generateCallFunction(int64_t id);
   void generateBr(int64_t num);
   void generateBrTrue(int64_t num);
+  void generateBreak();
+  void generateContinue();
+  void fixBreakAndContinue();
 
  private:
   std::vector<Instruction> _instructions;

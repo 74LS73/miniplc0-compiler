@@ -125,6 +125,30 @@ void Generator::generateBrTrue(int64_t num) {
   this->_instructions.emplace_back(Instruction(ISA::BR_TRUE, num));
 }
 
+void Generator::generateBreak() {
+  this->_instructions.emplace_back(Instruction(ISA::BREAK_FAKE));
+}
+
+void Generator::generateContinue() {
+  this->_instructions.emplace_back(Instruction(ISA::CONTINUE_FAKE));
+}
+
+void Generator::fixBreakAndContinue() {
+  int pos = 0;
+  for (auto &ins : this->_instructions) {
+    if (ins.GetISA() == ISA::BREAK_FAKE) {
+      ins.SetISA(ISA::BR);
+      ins.SetX(this->_instructions.size() - pos - 1);
+    }
+    else if (ins.GetISA() == ISA::CONTINUE_FAKE) {
+      ins.SetISA(ISA::BR);
+      ins.SetX(-pos);
+    }
+    pos++;
+  }
+}
+
+
 std::string ISA2Str(ISA isa) {
   switch (isa) {
     case NOP:

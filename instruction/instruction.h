@@ -64,7 +64,9 @@ enum ISA {
   PRINTF,
   PRINTS,
   PRINTLN,
-  PANIC = 0xfe
+  PANIC = 0xfe,
+  BREAK_FAKE,
+  CONTINUE_FAKE
 };
 
 class Instruction final {
@@ -94,6 +96,8 @@ class Instruction final {
 
   ISA GetISA() const { return _opr; }
   int64_t GetX() const { return _x; }
+  void SetISA(ISA isa) { _opr = isa; }
+  void SetX(int64_t x) { _x = x; }
 
  private:
   ISA _opr;

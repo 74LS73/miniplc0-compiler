@@ -32,6 +32,17 @@ std::optional<CompilationError> Analyser::analyseStatement(
       err = analyseWhileStatement(func, lhs);
       if (err.has_value()) return err;
       break;
+    case TokenType::BREAK:
+      unreadToken();
+      err = analyseBreakStatement(func, lhs);
+      if (err.has_value()) return err;
+      need_return = false;
+      break;
+    case TokenType::CONTINUE:
+      unreadToken();
+      err = analyseContinueStatement(func, lhs);
+      if (err.has_value()) return err;
+      break;
     case TokenType::RETURN:
       unreadToken();
       err = analyseReturnStatement(func, lhs);
@@ -134,7 +145,6 @@ std::optional<CompilationError> Analyser::analyseDeclVariableStatement(
   next = nextToken();
   auto expr_code = std::shared_ptr<Item>(new Item());
   if (next.has_value() && next.value().GetType() == TokenType::ASSIGN) {
-    
     err = analyseExpression(expr_code);
     if (err.has_value()) return err;
     next = nextToken();
@@ -146,11 +156,11 @@ std::optional<CompilationError> Analyser::analyseDeclVariableStatement(
   _symbol_table_stack.declareVariable(var);
   ++func.local_slots;
 
-  //Code Gen
+  // Code Gen
   lhs->p_code_gen.generateGetVariable(var.id, var.vt);
   lhs->p_code_gen += expr_code->p_code_gen;
   lhs->p_code_gen.generateStore();
-  //END
+  // END
   return {};
 }
 
@@ -177,7 +187,6 @@ std::optional<CompilationError> Analyser::analyseDeclConstStatement(
                                                 ErrorCode::ErrNeedIdentifier);
   }
   var.name = next.value().GetValueString();
-
 
   if (_symbol_table_stack.isLocalVariableDeclared(
           next.value().GetValueString())) {
@@ -217,11 +226,11 @@ std::optional<CompilationError> Analyser::analyseDeclConstStatement(
   _symbol_table_stack.declareVariable(var);
   ++func.local_slots;
 
-  //Code Gen
+  // Code Gen
   lhs->p_code_gen.generateGetVariable(var.id, var.vt);
   lhs->p_code_gen += expr_code->p_code_gen;
   lhs->p_code_gen.generateStore();
-  //END
+  // END
   return {};
 }
 
@@ -245,7 +254,6 @@ std::optional<CompilationError> Analyser::analyseIfStatement(
   bool if_need_return = true && need_return;
   err = analyseBlockStatement(func, if_need_return, if_gen);
   if (err.has_value()) return err;
-
 
   auto else_gen = std::shared_ptr<miniplc0::Item>(new Item());
   bool else_need_return = true && need_return;
@@ -300,19 +308,67 @@ std::optional<CompilationError> Analyser::analyseWhileStatement(
   err = analyseBlockStatement(func, while_need_return, block_code);
   if (err.has_value()) return err;
 
-  //While code
+  // While code
   auto while_code = std::shared_ptr<Item>(new Item());
   while_code->p_code_gen.generateBr(0);
   while_code->p_code_gen += expr_code->p_code_gen;
   while_code->p_code_gen.generateBrTrue(1);
   while_code->p_code_gen.generateBr(block_code->p_code_gen.size() + 1);
   while_code->p_code_gen += block_code->p_code_gen;
-  while_code->p_code_gen.generateBr(- while_code->p_code_gen.size()); 
+  while_code->p_code_gen.generateBr(-while_code->p_code_gen.size());
+  while_code->p_code_gen.fixBreakAndContinue();
   lhs->p_code_gen += while_code->p_code_gen;
-  //END
+  // END
 
   return {};
 }
+
+// Break_stmt -> 'break'  ';'
+std::optional<CompilationError> Analyser::analyseBreakStatement(
+    FunctionItem &func, std::shared_ptr<Item> lhs) {
+  auto next = nextToken();
+  std::optional<miniplc0::CompilationError> err;
+  if (!next.has_value() || next.value().GetType() != TokenType::BREAK) {
+    return std::make_optional<CompilationError>(_current_pos,
+                                                ErrorCode::ErrNeedReturn);
+  }
+
+  next = nextToken();
+  if (!next.has_value() || next.value().GetType() != TokenType::SEMICOLON) {
+    return std::make_optional<CompilationError>(_current_pos,
+                                                ErrorCode::ErrNeedSemicolon);
+  }
+
+  // Break Code
+  // Br(从此处到while结尾)
+  lhs->p_code_gen.generateBreak();
+  //END
+  return {};
+}
+
+// continue_stmt -> 'continue'  ';'
+std::optional<CompilationError> Analyser::analyseContinueStatement(
+    FunctionItem &func, std::shared_ptr<Item> lhs) {
+  auto next = nextToken();
+  std::optional<miniplc0::CompilationError> err;
+  if (!next.has_value() || next.value().GetType() != TokenType::CONTINUE) {
+    return std::make_optional<CompilationError>(_current_pos,
+                                                ErrorCode::ErrNeedReturn);
+  }
+
+  next = nextToken();
+  if (!next.has_value() || next.value().GetType() != TokenType::SEMICOLON) {
+    return std::make_optional<CompilationError>(_current_pos,
+                                                ErrorCode::ErrNeedSemicolon);
+  }
+
+  // Continue Code
+  // Br( - 从while开头到此处)
+  lhs->p_code_gen.generateContinue();
+  // END
+  return {};
+}
+
 
 // return_stmt -> 'return' expr? ';'
 std::optional<CompilationError> Analyser::analyseReturnStatement(

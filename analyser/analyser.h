@@ -97,6 +97,12 @@ class Analyser final {
   // <while 语句>
   std::optional<CompilationError> analyseWhileStatement(
       FunctionItem &, OUT std::shared_ptr<Item>);
+  // <break 语句>
+  std::optional<CompilationError> analyseBreakStatement(
+      FunctionItem &, OUT std::shared_ptr<Item>);
+  // <continue 语句>
+  std::optional<CompilationError> analyseContinueStatement(
+      FunctionItem &, OUT std::shared_ptr<Item>);
   // <return 语句>
   std::optional<CompilationError> analyseReturnStatement(
       FunctionItem &, OUT std::shared_ptr<Item>);

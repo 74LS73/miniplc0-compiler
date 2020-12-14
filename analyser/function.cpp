@@ -74,10 +74,23 @@ ARROW:
   }
   func.return_type = next.value().GetType();
   func.need_return = false;
+
   if (next.value().GetType() != TokenType::VOID) {
     func.return_slots++;
     func.need_return = true;
+    auto return_var = VariableItem();
+    return_var.is_const = false;
+    _symbol_table_stack.declareVariable(return_var);
   }
+
+
+
+  for (auto &var : func.params) {
+    var.id += func.return_slots;
+    _symbol_table_stack.declareVariable(var);
+  }
+
+
 
   // body
   auto lhs = std::shared_ptr<Item>(new Item());
@@ -93,7 +106,7 @@ ARROW:
     return std::make_optional<CompilationError>(_current_pos,
                                                 ErrorCode::ErrNeedReturn);
   }
-  _symbol_table_stack.declareFunction(fn_token, func);
+  _symbol_table_stack.declareFunction(func);
 
   if (err.has_value()) return err;
   
@@ -122,6 +135,8 @@ std::optional<CompilationError> Analyser::analyseFunctionParameter(
                                                 ErrorCode::ErrNeedIdentifier);
   }
 
+  var.name = next.value().GetValueString();
+
   if (_symbol_table_stack.isLocalVariableDeclared(
           next.value().GetValueString())) {
     return std::make_optional<CompilationError>(
@@ -142,7 +157,7 @@ std::optional<CompilationError> Analyser::analyseFunctionParameter(
   }
   var.type = next.value().GetType();
 
-  _symbol_table_stack.declareVariable(var_token, var);
+  // _symbol_table_stack.declareVariable(var_token, var);
 
   func.params.push_back(var);
   func.param_slots++;

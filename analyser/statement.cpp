@@ -100,7 +100,8 @@ std::optional<CompilationError> Analyser::analyseDeclVariableStatement(
     return std::make_optional<CompilationError>(_current_pos,
                                                 ErrorCode::ErrNeedIdentifier);
   }
-  auto var_token = next.value();
+  var.name = next.value().GetValueString();
+
   if (_symbol_table_stack.isLocalVariableDeclared(
           next.value().GetValueString())) {
     return std::make_optional<CompilationError>(
@@ -142,7 +143,7 @@ std::optional<CompilationError> Analyser::analyseDeclVariableStatement(
     return std::make_optional<CompilationError>(_current_pos,
                                                 ErrorCode::ErrNeedSemicolon);
 
-  _symbol_table_stack.declareVariable(var_token, var);
+  _symbol_table_stack.declareVariable(var);
   ++func.local_slots;
 
   //Code Gen
@@ -175,7 +176,9 @@ std::optional<CompilationError> Analyser::analyseDeclConstStatement(
     return std::make_optional<CompilationError>(_current_pos,
                                                 ErrorCode::ErrNeedIdentifier);
   }
-  auto var_token = next.value();
+  var.name = next.value().GetValueString();
+
+
   if (_symbol_table_stack.isLocalVariableDeclared(
           next.value().GetValueString())) {
     return std::make_optional<CompilationError>(
@@ -211,7 +214,7 @@ std::optional<CompilationError> Analyser::analyseDeclConstStatement(
     return std::make_optional<CompilationError>(_current_pos,
                                                 ErrorCode::ErrNeedSemicolon);
 
-  _symbol_table_stack.declareVariable(var_token, var);
+  _symbol_table_stack.declareVariable(var);
   ++func.local_slots;
 
   //Code Gen

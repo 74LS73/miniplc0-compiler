@@ -47,7 +47,7 @@ std::optional<CompilationError> Analyser::analyseProgram() {
   auto main_func = _symbol_table_stack.getFunctionByName("main");
   // END
 
-  _symbol_table_stack.declareFunction(_start_token, _start);
+  _symbol_table_stack.declareFunction(_start);
   return {};
 }
 }  // namespace miniplc0

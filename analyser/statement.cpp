@@ -268,7 +268,7 @@ std::optional<CompilationError> Analyser::analyseIfStatement(
     unreadToken();
   }
 
-  // IF_ELSE
+  // If else code
   lhs->p_code_gen.generateBrTrue(1);
   lhs->p_code_gen.generateBr(if_gen->p_code_gen.size());
   lhs->p_code_gen += if_gen->p_code_gen;
@@ -291,12 +291,25 @@ std::optional<CompilationError> Analyser::analyseWhileStatement(
         _current_pos, ErrorCode::ErrNeedDeclareSymbol);
   }
 
-  err = analyseExpression(lhs);
+  auto expr_code = std::shared_ptr<Item>(new Item());
+  err = analyseExpression(expr_code);
   if (err.has_value()) return err;
 
   bool while_need_return = false;
-  err = analyseBlockStatement(func, while_need_return, lhs);
+  auto block_code = std::shared_ptr<Item>(new Item());
+  err = analyseBlockStatement(func, while_need_return, block_code);
   if (err.has_value()) return err;
+
+  //While code
+  auto while_code = std::shared_ptr<Item>(new Item());
+  while_code->p_code_gen.generateBr(0);
+  while_code->p_code_gen += expr_code->p_code_gen;
+  while_code->p_code_gen.generateBrTrue(1);
+  while_code->p_code_gen.generateBr(block_code->p_code_gen.size() + 1);
+  while_code->p_code_gen += block_code->p_code_gen;
+  while_code->p_code_gen.generateBr(- while_code->p_code_gen.size()); 
+  lhs->p_code_gen += while_code->p_code_gen;
+  //END
 
   return {};
 }

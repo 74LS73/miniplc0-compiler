@@ -42,6 +42,8 @@ class SymbolTableStack final {
  private:
   // 返回值和返回引用的区别了解一下
   SymbolTable &getCurrentTable();
+  // 检查是否为标准库函数
+  std::optional<FunctionItem> getStandardFunctionByName(const std::string &);
 };
 
 }  // namespace miniplc0

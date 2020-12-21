@@ -21,6 +21,7 @@ set(lib_src
 	symbol/type.h
 	symbol/symbol_table.h
 	symbol/symbol_table.cpp
+	symbol/stand_library.cpp
 	symbol/symbol_table_stack.h
 	symbol/symbol_table_stack.cpp
 	ast/ast.h

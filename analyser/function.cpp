@@ -106,9 +106,9 @@ ARROW:
     return std::make_optional<CompilationError>(_current_pos,
                                                 ErrorCode::ErrNeedReturn);
   }
-  _symbol_table_stack.declareFunction(func);
 
-  if (err.has_value()) return err;
+
+  _symbol_table_stack.declareFunction(func);
   
   std::cout << "====" << func.name << "===" << std::endl;
   lhs->p_code_gen.show();

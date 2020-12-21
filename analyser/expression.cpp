@@ -244,6 +244,9 @@ std::optional<CompilationError> Analyser::analyseCallExpression(
   }
 
   auto call_func_name = next.value().GetValueString();
+  if (!_symbol_table_stack.isFunctionDeclared(call_func_name))
+    return std::make_optional<CompilationError>(
+        _current_pos, ErrorCode::ErrNeedDeclareSymbol);
   auto call_func = _symbol_table_stack.getFunctionByName(call_func_name);
 
   next = nextToken();

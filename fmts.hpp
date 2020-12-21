@@ -164,7 +164,7 @@ struct formatter<miniplc0::TokenType> {
         name = "StringLiteral";
         break;
       case miniplc0::COMMENT:
-        name = "StringLiteral";
+        name = "Comment";
         break;
       case miniplc0::INT:
         name = "Int";

@@ -407,13 +407,13 @@ std::optional<CompilationError> Analyser::analyseBlockStatement(
                                                 ErrorCode::ErrNeedBrace);
   }
   while (true) {
-    err = analyseStatement(func, need_return, lhs);
-    if (err.has_value()) return err;
     next = nextToken();
     if (next.has_value() && next.value().GetType() == TokenType::RIGHT_BRACE) {
       return {};
     }
     unreadToken();
+    err = analyseStatement(func, need_return, lhs);
+    if (err.has_value()) return err;
   }
 
   return std::make_optional<CompilationError>(_current_pos,

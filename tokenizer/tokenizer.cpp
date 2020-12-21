@@ -47,7 +47,8 @@ Tokenizer::AllTokens() {
 std::pair<std::optional<Token>, std::optional<CompilationError>>
 Tokenizer::nextToken() {
   // 用于存储已经读到的组成当前token字符
-  std::stringstream ss;
+  // std::stringstream ss;
+  std::string ss;
   // 分析token的结果，作为此函数的返回值
   std::pair<std::optional<Token>, std::optional<CompilationError>> result;
   // <行号，列号>，表示当前token的第一个字符在源代码中的位置
@@ -84,15 +85,15 @@ Tokenizer::nextToken() {
       pos = previousPos();
     }
     if (next_state != DFAState::INITIAL_STATE) {
-      ss << ch;
+      ss += ch;
     } else if (next_state == DFAState::INITIAL_STATE &&
                current_state != DFAState::INITIAL_STATE) {
       // 任何一个状态结束后都会重新返回到初始状态
       // 如果返回到初始状态，说明已经处理完了一个Token
       // 故可以返回结果
       unreadLast();
-      std::string stoken;
-      ss >> stoken;
+      std::string stoken(ss);
+      // ss >> stoken;
 
       auto tokentype = StateToTokenType[current_state];
 

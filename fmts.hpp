@@ -216,7 +216,7 @@ struct formatter<miniplc0::TokenType> {
         name = "Semicolon";
         break;
       case miniplc0::DIV_SIGN:
-        name = "LeftBracket";
+        name = "DivSign";
         break;
       case miniplc0::ASSIGN:
         name = "RightBracket";

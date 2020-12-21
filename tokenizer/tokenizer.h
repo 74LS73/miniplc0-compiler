@@ -17,7 +17,7 @@
 namespace miniplc0 {
 
 // 状态机的所有状态
-enum DFAState {
+enum class DFAState {
   INITIAL_STATE,
   UNSIGNED_INTEGER_STATE,
   // Double Begin
@@ -27,8 +27,23 @@ enum DFAState {
   SCIENCE_DOUBLE_STATE_MID1,
   SCIENCE_DOUBLE_STATE_MID2,
   // Double End
+  // Char Begin
   CHAR_LITERAL_STATE,
+  CHAR_LITERAL_STATE_BEGIN,
+  CHAR_ESCAPE_STATE,
+  CHAR_LITERAL_STATE_MID,
+  // Chae end
+  // String Begin
   STRING_LITERAL_STATE,
+  STRING_LITERAL_STATE_BEGIN,
+  STRING_LITERAL_STATE_MID,
+  STRING_ESCAPE_STATE,
+  // String End
+  // Comment Begin
+  COMMENT_STATE_BEGIN,
+  COMMENT_STATE_MID,
+  COMMENT_STATE,
+  // Comment End
   PLUS_SIGN_STATE,
   MINUS_SIGN_STATE,
   DIV_SIGN_STATE,

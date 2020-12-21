@@ -5,6 +5,11 @@
 
 namespace miniplc0 {
 
+// 生成CharRegularChar
+constexpr const char* getCharRegularChar();
+// 生成conmment chars
+constexpr const char* getCommentChar();
+
 std::pair<std::optional<Token>, std::optional<CompilationError>>
 Tokenizer::NextToken() {
   if (!_initialized) readAll();
@@ -259,8 +264,7 @@ std::optional<CompilationError> Tokenizer::initDfaStateMachine() {
              DFAState::UNSIGNED_DOUBLE_STATE);
   // Normal Double End
 
-
-  //Seience Double Begin
+  // Seience Double Begin
   addDfaEdge(DFAState::UNSIGNED_DOUBLE_STATE, "eE",
              DFAState::SCIENCE_DOUBLE_STATE_MID1);
   addDfaEdge(DFAState::SCIENCE_DOUBLE_STATE_MID1, "0123456789",
@@ -273,11 +277,74 @@ std::optional<CompilationError> Tokenizer::initDfaStateMachine() {
              DFAState::SCIENCE_DOUBLE_STATE);
   // Seience Double End
 
-  // TODO: String
-  addDfaEdge(DFAState::INITIAL_STATE, "\"", DFAState::STRING_LITERAL_STATE);
-  // TODO: Char
+  // String " (string_regular_char | escape_sequence)* "
+  addDfaEdge(DFAState::INITIAL_STATE, "\"",
+             DFAState::STRING_LITERAL_STATE_BEGIN);
+  addDfaEdge(DFAState::STRING_LITERAL_STATE_BEGIN, getCharRegularChar(),
+             DFAState::STRING_LITERAL_STATE_MID);
+  addDfaEdge(DFAState::STRING_LITERAL_STATE_MID, getCharRegularChar(),
+             DFAState::STRING_LITERAL_STATE_MID);
+  // Excape Start
+  addDfaEdge(DFAState::STRING_LITERAL_STATE_BEGIN, "\\",
+             DFAState::STRING_ESCAPE_STATE);
+  addDfaEdge(DFAState::STRING_LITERAL_STATE_MID, "\\",
+             DFAState::STRING_ESCAPE_STATE);
+  addDfaEdge(DFAState::STRING_ESCAPE_STATE, "\\\'\"ntr",
+             DFAState::STRING_LITERAL_STATE_MID);
+  // Excape End
+  addDfaEdge(DFAState::STRING_LITERAL_STATE_MID, "\"",
+             DFAState::STRING_LITERAL_STATE);
+  // String End;
 
+  // Char ' (char_regular_char | escape_sequence) '
+  addDfaEdge(DFAState::INITIAL_STATE, "\'", DFAState::CHAR_LITERAL_STATE_BEGIN);
+  // Excape Start
+  addDfaEdge(DFAState::CHAR_LITERAL_STATE_BEGIN, "\\",
+             DFAState::CHAR_ESCAPE_STATE);
+  addDfaEdge(DFAState::CHAR_ESCAPE_STATE, "\\\'\"ntr",
+             DFAState::CHAR_LITERAL_STATE_MID);
+  // Excape End
+  addDfaEdge(DFAState::CHAR_LITERAL_STATE_BEGIN, getCharRegularChar(),
+             DFAState::CHAR_LITERAL_STATE_MID);
+  addDfaEdge(DFAState::CHAR_LITERAL_STATE_MID, "\'",
+             DFAState::CHAR_LITERAL_STATE);
+  // Char end
+
+  // Comment
+  addDfaEdge(DFAState::DIV_SIGN_STATE, "/", DFAState::COMMENT_STATE_MID);
+  addDfaEdge(DFAState::COMMENT_STATE_MID, getCommentChar(),
+             DFAState::COMMENT_STATE_MID);
+  addDfaEdge(DFAState::COMMENT_STATE_MID, "\n", DFAState::COMMENT_STATE);
+  // Comment End
   return {};
+}
+
+constexpr const char* getCharRegularChar() {
+  size_t size = 128 - 5;
+  char* res = (char*)malloc(sizeof(char) * size);
+  for (int c = 127, i = 0; c >= 0; c--) switch (c) {
+      case '\\':
+      case '\"':
+      case '\n':
+      case '\t':
+      case '\r':
+        break;
+      default:
+        res[i++] = (char)c;
+    }
+  return res;
+}
+
+constexpr const char* getCommentChar() {
+  size_t size = 128 - 1;
+  char* res = (char*)malloc(sizeof(char) * size);
+  for (int c = 127, i = 0; c >= 0; c--) switch (c) {
+      case '\n':
+        break;
+      default:
+        res[i++] = (char)c;
+    }
+  return res;
 }
 
 std::optional<CompilationError> Tokenizer::initStateToTokenType() {
@@ -287,6 +354,11 @@ std::optional<CompilationError> Tokenizer::initStateToTokenType() {
       {DFAState::UNSIGNED_DOUBLE_STATE, TokenType::UNSIGNED_DOUBLE});
   StateToTokenType.insert(
       {DFAState::SCIENCE_DOUBLE_STATE, TokenType::UNSIGNED_DOUBLE});
+  StateToTokenType.insert(
+      {DFAState::CHAR_LITERAL_STATE, TokenType::CHAR_LITERAL});
+  StateToTokenType.insert(
+      {DFAState::STRING_LITERAL_STATE, TokenType::STRING_LITERAL});
+  StateToTokenType.insert({DFAState::COMMENT_STATE, TokenType::COMMENT});
   StateToTokenType.insert({DFAState::PLUS_SIGN_STATE, TokenType::PLUS_SIGN});
   StateToTokenType.insert({DFAState::MINUS_SIGN_STATE, TokenType::MINUS_SIGN});
   StateToTokenType.insert({DFAState::DIV_SIGN_STATE, TokenType::DIV_SIGN});

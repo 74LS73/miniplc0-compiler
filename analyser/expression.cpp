@@ -34,11 +34,12 @@ ExprNodePtr Analyser::analyseExpression() {
     unreadToken();
     return unary;
   }
-  unreadToken();
-  
+
   auto op_expr = std::make_shared<OpExprNode>();
 
   op_expr->_lhs = unary;
+  op_expr->_operator = next->GetType();
+  unreadToken();
   // shared_ptr<OpExprNode> op_expr;
   // auto lhs = std::dynamic_pointer_cast<OpExprNode>(unary);
   auto op_node = analyseOperatorExpression(op_expr);
@@ -89,8 +90,7 @@ ExprNodePtr Analyser::analyserItemExpression() {
 // ProUOp -> 'as' TypeDef
 ExprNodePtr Analyser::analyserUnaryExpression() {
   auto node = std::make_shared<UnaryExprNode>();
-  optional<miniplc0::Token> next;
-
+  optional<Token> next;
   // - *
   int64_t nega = 0;
   while (true) {
@@ -141,50 +141,62 @@ ExprNodePtr Analyser::analyserUnaryExpression() {
 // 初始token_type记录当前正在分析的运算类型
 // 初始为默认值（对应优先级最小）
 ExprNodePtr Analyser::analyseOperatorExpression(ExprNodePtr _expr) {
-  auto node = std::make_shared<OpExprNode>();
-  optional<miniplc0::Token> next;
+  optional<Token> next;
 
-  auto op_expr = std::dynamic_pointer_cast<OpExprNode>(_expr);
+  auto lhs = std::dynamic_pointer_cast<OpExprNode>(_expr);
   while (true) {
     next = nextToken();
-    // 如果之前在计算 * ，且现在遇到 +，则需要停止向下递归
-    // 否则继续分析
-
-    if (!next.has_value() || !next.value().isTokenABinaryOperator() ||
-        next.value() < op_expr->_operator) {
+    if (!next.has_value() || !next.value().isTokenABinaryOperator()) {
       unreadToken();
-      return {};
+      return lhs;
     }
 
     auto current_op = next.value();
+    if (lhs->_operator != current_op.GetType())
+      throw AnalyserError({_current_pos, ErrorCode::ErrCompiler});
 
     auto rhs = analyserUnaryExpression();
 
     while (true) {
       next = nextToken();
 
-      // * 遇上 + ，跳出，结合lhr和rhs
-      if (!next.has_value() || !next.value().isTokenABinaryOperator() ||
-          next.value() < current_op) {
+      if (!next.has_value() || !next.value().isTokenABinaryOperator()) {
+        // End
+        unreadToken();
+        auto node = std::make_shared<OpExprNode>();
+        node->_lhs = lhs;
+        node->_operator = current_op.GetType();
+        node->_rhs = rhs;
+        return node;
+      } else if (next.value() < current_op) {
+        // * 遇上 + ，跳出，结合lhr和rhs
+        current_op = next.value();
         unreadToken();
         break;
       }
 
-      auto next_op = next.value();
       // + 遇上 * ，递归，rhs变lhs
+      auto new_op_expr = std::make_shared<OpExprNode>();
+      new_op_expr->_rhs = rhs;
+      new_op_expr->_operator = next->GetType();
       unreadToken();
-      analyseOperatorExpression(rhs);
+      rhs = analyseOperatorExpression(new_op_expr);
     }
-
     // 结合lhs和rhs
-    op_expr->_rhs = rhs;
-    op_expr->_operator = current_op.GetType();
+    auto tmp = std::make_shared<OpExprNode>();
+    tmp->_lhs = lhs;
+    tmp->_rhs = rhs;
+    tmp->_operator = current_op.GetType();
+    lhs = std::make_shared<OpExprNode>();
+    lhs->_lhs = tmp;
+    lhs->_operator = current_op.GetType();
     // lhs = lhs + rhs;
     // 添加运算符
     // lhs->combine(current_op.GetType(), rhs);
   }
 
-  return op_expr;
+  UNREACHABLE();
+  return {};
 }
 
 // <赋值表达式>

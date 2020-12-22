@@ -27,14 +27,22 @@ void Tokenize(std::istream &input, std::ostream &output) {
 void Analyse(std::istream &input, std::ostream &output) {
   auto tks = _tokenize(input);
   miniplc0::Analyser analyser(tks);
-  auto p = analyser.Analyse();
-  if (p.second.has_value()) {
-    fmt::print(stderr, "Syntactic analysis error: {}\n", p.second.value());
-    // 同上
+  try {
+    auto p = analyser.Analyse();
+    auto v = p.first;
+    for (auto &it : v) output << fmt::format("{}\n", it);
+  } catch (miniplc0::CompilationError &error) {
+    fmt::print(stderr, "Syntactic analysis error: {}\n", error);
     exit(0);
   }
-  auto v = p.first;
-  for (auto &it : v) output << fmt::format("{}\n", it);
+
+  // if (p.second.has_value()) {
+  //   fmt::print(stderr, "Syntactic analysis error: {}\n", p.second.value());
+  //   // 同上
+  //   exit(0);
+  // }
+  // auto v = p.first;
+  // for (auto &it : v) output << fmt::format("{}\n", it);
   return;
 }
 

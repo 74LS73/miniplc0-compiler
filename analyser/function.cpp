@@ -6,40 +6,22 @@ namespace miniplc0 {
 // //               ^~~~      ^~~~~~~~~~~~~~~~~~~~          ^~ ^~~~~~~~~~
 // //               |              |                        |  |
 // //               function_name  param_list     return_type  function_body
-std::optional<CompilationError> Analyser::analyseFunction() {
-  std::optional<miniplc0::CompilationError> err;
-  auto func = FunctionItem();
+FuncNodePtr Analyser::analyseFunction() {
+  auto node = std::make_shared<FuncNode>();
   auto next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::FN) {
-    return std::make_optional<CompilationError>(
-        _current_pos, ErrorCode::ErrNeedDeclareSymbol);
+    throw AnalyserError({_current_pos, ErrorCode::ErrNeedDeclareSymbol});
   }
 
   // Identifier
-  next = nextToken();
-
-  if (!next.has_value() || next.value().GetType() != TokenType::IDENTIFIER) {
-    return std::make_optional<CompilationError>(_current_pos,
-                                                ErrorCode::ErrNeedIdentifier);
-  }
-
-  auto fn_token = next.value();
-  std::string fn_name = next.value().GetValueString();
-  if (_symbol_table_stack.isFunctionDeclared(fn_name)) {
-    return std::make_optional<CompilationError>(
-        _current_pos, ErrorCode::ErrDuplicateDeclaration);
-  }
-  func.name = fn_name;
+  auto ident = analyseIdentExpression();
+  node->_ident = ident;
 
   // (
   next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::LEFT_BRACKET) {
-    return std::make_optional<CompilationError>(_current_pos,
-                                                ErrorCode::ErrNeedBracket);
+    throw AnalyserError({_current_pos, ErrorCode::ErrNeedBracket});
   }
-
-  // 进入SubScope
-  _symbol_table_stack.pushNextScope();
 
   // 判断一下是否有参数
   next = nextToken();
@@ -48,140 +30,79 @@ std::optional<CompilationError> Analyser::analyseFunction() {
   }
   unreadToken();
 
-  err = analyseFunctionParamList(func);
-  if (err.has_value()) return err;
+  analyseFunctionParamList(node);
 
   // )
   next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::RIGHT_BRACKET) {
-    return std::make_optional<CompilationError>(_current_pos,
-                                                ErrorCode::ErrNeedBracket);
+    throw AnalyserError({_current_pos, ErrorCode::ErrNeedBracket});
   }
 
 ARROW:
   // ->
   next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::ARROW) {
-    return std::make_optional<CompilationError>(_current_pos,
-                                                ErrorCode::ErrNeedArrow);
+    throw AnalyserError({_current_pos, ErrorCode::ErrNeedArrow});
   }
 
   // return_type
   next = nextToken();
   if (!next.has_value() || !next.value().isTokenAType()) {
-    return std::make_optional<CompilationError>(_current_pos,
-                                                ErrorCode::ErrNeedType);
-  }
-  func.return_type = next.value().GetType();
-  func.need_return = false;
-
-  if (next.value().GetType() != TokenType::VOID) {
-    func.return_slots++;
-    func.need_return = true;
-    auto return_var = VariableItem();
-    return_var.is_const = false;
-    _symbol_table_stack.declareVariable(return_var);
+    throw AnalyserError({_current_pos, ErrorCode::ErrNeedType});
   }
 
-
-
-  for (auto &var : func.params) {
-    var.id += func.return_slots;
-    _symbol_table_stack.declareVariable(var);
-  }
-
-
+  node->_return_type = next.value().GetType();
 
   // body
-  auto lhs = std::shared_ptr<Item>(new Item());
-  err = analyseBlockStatement(func, func.need_return, lhs);
-  if (err.has_value()) return err;
+  auto body = analyseBlockStatement();
+  node->_body = body;
 
-  // 退出SubScope
-  _symbol_table_stack.popCurrentScope();
-  
-  // _symbol_table_stack.getCurrentScopeLevel();
-  // TODO
-  if (func.need_return) {
-    return std::make_optional<CompilationError>(_current_pos,
-                                                ErrorCode::ErrNeedReturn);
-  }
-
-
-  _symbol_table_stack.declareFunction(func);
-  
-  std::cout << "====" << func.name << "===" << std::endl;
-  lhs->p_code_gen.show();
-  return {};
+  return node;
 }
 
 // function_param -> 'const'? IDENT ':' ty
-std::optional<CompilationError> Analyser::analyseFunctionParameter(
-    FunctionItem &func) {
-  std::optional<miniplc0::CompilationError> err;
-  auto var = VariableItem();
-  var.vt = VariableType::PARAM;
-  var.id = func.param_slots;
-
+void Analyser::analyseFunctionParameter(FuncNodePtr &func) {
   auto next = nextToken();
+  bool is_const = false;
   if (next.has_value() && next.value().GetType() == TokenType::CONST) {
-    var.is_const = true;
-    next = nextToken();
+    is_const = true;
+  } else {
+    unreadToken();
   }
 
-  auto var_token = next.value();
-  if (!next.has_value() || next.value().GetType() != TokenType::IDENTIFIER) {
-    return std::make_optional<CompilationError>(_current_pos,
-                                                ErrorCode::ErrNeedIdentifier);
-  }
-
-  var.name = next.value().GetValueString();
-
-  if (_symbol_table_stack.isLocalVariableDeclared(
-          next.value().GetValueString())) {
-    return std::make_optional<CompilationError>(
-        _current_pos, ErrorCode::ErrDuplicateDeclaration);
-  }
+  auto ident = analyseIdentExpression();
+  auto param = std::make_shared<FuncParamNode>();
+  param->_ident = ident;
+  param->_const = is_const;
 
   next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::COLON) {
-    return std::make_optional<CompilationError>(_current_pos,
-                                                ErrorCode::ErrNeedColon);
+    throw AnalyserError({_current_pos, ErrorCode::ErrNeedColon});
   }
 
   next = nextToken();
 
   if (!next.has_value() || !next.value().isTokenAType()) {
-    return std::make_optional<CompilationError>(_current_pos,
-                                                ErrorCode::ErrNeedType);
+    throw AnalyserError({_current_pos, ErrorCode::ErrNeedType});
   }
-  var.type = next.value().GetType();
+  param->_type = next->GetType();
+  func->_params.emplace_back(param);
 
-  // _symbol_table_stack.declareVariable(var_token, var);
-
-  func.params.push_back(var);
-  func.param_slots++;
-
-  return {};
+  return;
 }
 
 // function_param_list -> function_param (',' function_param)*
-std::optional<CompilationError> Analyser::analyseFunctionParamList(
-    FunctionItem &func) {
-  std::optional<miniplc0::CompilationError> err;
-
-  std::optional<miniplc0::Token> next;
+void Analyser::analyseFunctionParamList(FuncNodePtr &func) {
+  optional<Token> next;
   while (true) {
-    err = analyseFunctionParameter(func);
-    if (err.has_value()) return err;
+    analyseFunctionParameter(func);
     next = nextToken();
     if (!next.has_value() || next.value().GetType() != TokenType::COMMA) {
       unreadToken();
       break;
     }
   }
-
-  return {};
+  return;
 }
 
 }  // namespace miniplc0

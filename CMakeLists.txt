@@ -24,6 +24,11 @@ set(lib_src
 	symbol/stand_library.cpp
 	symbol/symbol_table_stack.h
 	symbol/symbol_table_stack.cpp
+	ast/node.h
+	ast/expr_node.h
+	ast/stat_node.h
+	ast/func_node.h
+	ast/prog_node.h
 	ast/ast.h
 	ast/ast.cpp
 	analyser/analyser.h

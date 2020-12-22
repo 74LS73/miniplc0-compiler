@@ -16,6 +16,12 @@
 
 namespace miniplc0 {
 
+using std::optional;
+using std::pair;
+using std::shared_ptr;
+using std::vector;
+typedef CompilationError AnalyserError;
+
 #define IN
 #define OUT
 
@@ -37,8 +43,7 @@ class Analyser final {
   Analyser &operator=(Analyser) = delete;
 
   // 唯一接口
-  std::pair<std::vector<Instruction>, std::optional<CompilationError>>
-  Analyse();
+  std::pair<std::vector<Instruction>, optional<CompilationError>> Analyse();
 
  private:
   // 所有的递归子程序
@@ -46,90 +51,61 @@ class Analyser final {
   /* 以下为表达式 */
 
   // <表达式>
-  std::optional<CompilationError> analyseExpression(std::shared_ptr<Item>);
+  ExprNodePtr analyseExpression();
   // <项表达式>
-  std::optional<CompilationError> analyserItemExpression(
-      OUT std::shared_ptr<Item>);
+  ExprNodePtr analyserItemExpression();
   // <一元运算符表达式>
-  std::optional<CompilationError> analyserUnaryExpression(
-      OUT std::shared_ptr<Item>);
+  ExprNodePtr analyserUnaryExpression();
   // <运算符表达式>
-  std::optional<CompilationError> analyseOperatorExpression(
-      OUT std::shared_ptr<Item>, IN TokenType = TokenType::NULL_TOKEN);
-  // // <取反表达式> negate_expr -> '-' expr
-  // std::optional<CompilationError> analyseNegateExpression();
+  ExprNodePtr analyseOperatorExpression(ExprNodePtr);
   // <赋值表达式>assign_expr -> l_expr '=' expr
-  std::optional<CompilationError> analyseAssignExpression(
-      std::shared_ptr<Item>);
-  // // <类型转换表达式> as_expr -> expr 'as' ty
-  // std::optional<CompilationError> analyseAsExpression();
+  ExprNodePtr analyseAssignExpression();
   // <函数调用表达式>
-  std::optional<CompilationError> analyseCallExpression(
-      OUT std::shared_ptr<Item>);
+  ExprNodePtr analyseCallExpression();
   // <字面量表达式>
-  std::optional<CompilationError> analyseLiteralExpression(
-      OUT std::shared_ptr<Item>);
+  ExprNodePtr analyseLiteralExpression();
   // <标识符表达式>
-  std::optional<CompilationError> analyseIdentExpression(
-      OUT std::shared_ptr<Item>);
+  ExprNodePtr analyseIdentExpression();
   // <括号表达式>
-  std::optional<CompilationError> analyseBracketExpression(
-      OUT std::shared_ptr<Item>);
+  ExprNodePtr analyseBracketExpression();
 
   /* 以下为语句 */
   // <语句>
-  std::optional<CompilationError> analyseStatement(FunctionItem &,
-                                                   bool &need_return,
-                                                   OUT std::shared_ptr<Item>);
+  StatNodePtr analyseStatement();
   // <表达式语句>
-  std::optional<CompilationError> analyseExprStatement(
-      FunctionItem &, OUT std::shared_ptr<Item>);
-  // <变量声明语句>
-  std::optional<CompilationError> analyseDeclVariableStatement(
-      FunctionItem &, VariableType, OUT std::shared_ptr<Item>);
-  // <常量声明语句>
-  std::optional<CompilationError> analyseDeclConstStatement(
-      FunctionItem &, VariableType, std::shared_ptr<Item> lhs);
+  StatNodePtr analyseExprStatement();
+  // <声明语句>
+  StatNodePtr analyseDeclStatement();
   // <if 语句>
-  std::optional<CompilationError> analyseIfStatement(FunctionItem &,
-                                                     bool &need_return,
-                                                     OUT std::shared_ptr<Item>);
+  StatNodePtr analyseIfStatement();
   // <while 语句>
-  std::optional<CompilationError> analyseWhileStatement(
-      FunctionItem &, OUT std::shared_ptr<Item>);
+  StatNodePtr analyseWhileStatement();
   // <break 语句>
-  std::optional<CompilationError> analyseBreakStatement(
-      FunctionItem &, OUT std::shared_ptr<Item>);
+  StatNodePtr analyseBreakStatement();
   // <continue 语句>
-  std::optional<CompilationError> analyseContinueStatement(
-      FunctionItem &, OUT std::shared_ptr<Item>);
+  StatNodePtr analyseContinueStatement();
   // <return 语句>
-  std::optional<CompilationError> analyseReturnStatement(
-      FunctionItem &, OUT std::shared_ptr<Item>);
+  StatNodePtr analyseReturnStatement();
   // <代码块>
-  std::optional<CompilationError> analyseBlockStatement(FunctionItem &,
-                                                        bool &need_return,
-                                                        std::shared_ptr<Item>);
+  StatNodePtr analyseBlockStatement();
   // <空语句>
-  std::optional<CompilationError> analyseEmptyStatement();
+  StatNodePtr analyseEmptyStatement();
 
   /* 以下为函数 */
   // 函数
-  std::optional<CompilationError> analyseFunction();
+  FuncNodePtr analyseFunction();
   // 参数
-  std::optional<CompilationError> analyseFunctionParameter(FunctionItem &);
+  void analyseFunctionParameter(FuncNodePtr &);
   // 参数列表
-  std::optional<CompilationError> analyseFunctionParamList(FunctionItem &);
+  void analyseFunctionParamList(FuncNodePtr &);
 
   /* 以下为程序结构 */
-  std::optional<CompilationError> analyseProgram();
+  optional<CompilationError> analyseProgram();
 
  private:
-  // Token 缓冲区相关操作
-  std::shared_ptr<FunctionItem> _p_current_function;
-
   // 返回下一个 token
-  std::optional<Token> nextToken();
+  optional<Token> nextToken();
+  optional<TokenType> peekATokenGetType();
   // 回退一个 token
   void unreadToken();
 

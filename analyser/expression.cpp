@@ -2,6 +2,8 @@
 
 namespace miniplc0 {
 
+#define UNREACHABLE()
+
 /* expression -> (unary  operator) | assign_expr
 
   operator -> operator_expr
@@ -10,10 +12,7 @@ namespace miniplc0 {
 */
 
 // expr -> (unary  operator) | assign_expr
-std::optional<CompilationError> Analyser::analyseExpression(
-    std::shared_ptr<Item> lhs) {
-  std::optional<miniplc0::CompilationError> err;
-
+ExprNodePtr Analyser::analyseExpression() {
   // assign
   auto next = nextToken();
   if (next.has_value() && next.value().GetType() == TokenType::IDENTIFIER) {
@@ -21,22 +20,30 @@ std::optional<CompilationError> Analyser::analyseExpression(
     if (next.has_value() && next.value().GetType() == TokenType::ASSIGN) {
       unreadToken();
       unreadToken();
-      err = analyseAssignExpression(lhs);
-      if (err.has_value()) return err;
-
-      return {};
+      return analyseAssignExpression();
     }
     unreadToken();
   }
   unreadToken();
 
-  err = analyserUnaryExpression(lhs);
-  if (err.has_value()) return err;
+  auto unary = analyserUnaryExpression();
 
-  err = analyseOperatorExpression(lhs);
-  if (err.has_value()) return err;
+  // 是否为符号
+  next = nextToken();
+  if (!next.has_value() || !next.value().isTokenABinaryOperator()) {
+    unreadToken();
+    return unary;
+  }
+  unreadToken();
+  
+  auto op_expr = std::make_shared<OpExprNode>();
 
-  return {};
+  op_expr->_lhs = unary;
+  // shared_ptr<OpExprNode> op_expr;
+  // auto lhs = std::dynamic_pointer_cast<OpExprNode>(unary);
+  auto op_node = analyseOperatorExpression(op_expr);
+
+  return op_node;
 }
 
 // item ->
@@ -44,14 +51,10 @@ std::optional<CompilationError> Analyser::analyseExpression(
 // | 函数调用
 // | 字面量（INT, DOUBLE, CHAR, STRING）
 // | GroupEx
-std::optional<CompilationError> Analyser::analyserItemExpression(
-    std::shared_ptr<Item> lhs) {
-  std::optional<miniplc0::CompilationError> err;
-  std::optional<miniplc0::Token> next = nextToken();
-
+ExprNodePtr Analyser::analyserItemExpression() {
+  optional<Token> next = nextToken();
   if (!next.has_value()) {
-    return std::make_optional<CompilationError>(_current_pos,
-                                                ErrorCode::ErrCompiler);
+    throw AnalyserError({_current_pos, ErrorCode::ErrCompiler});
   } else if (next.value().GetType() == TokenType::IDENTIFIER) {
     next = nextToken();
 
@@ -59,37 +62,34 @@ std::optional<CompilationError> Analyser::analyserItemExpression(
       // FunctionCall
       unreadToken();
       unreadToken();
-      err = analyseCallExpression(lhs);
-      if (err.has_value()) return err;
+      auto res = analyseCallExpression();
 
     } else {
       // IDentifier
       unreadToken();
       unreadToken();
-      err = analyseIdentExpression(lhs);
-      if (err.has_value()) return err;
+      auto res = analyseIdentExpression();
     }
   } else if (next.value().GetType() == TokenType::LEFT_BRACKET) {
     unreadToken();
-    err = analyseBracketExpression(lhs);
-    if (err.has_value()) return err;
+    auto res = analyseBracketExpression();
+
   } else {
     // 字面量
     unreadToken();
-    err = analyseLiteralExpression(lhs);
-    if (err.has_value()) return err;
+    auto res = analyseLiteralExpression();
   }
 
+  UNREACHABLE();
   return {};
 }
 
 // UExpr -> PreUOp* Item ProUOp*
 // PreUOp -> '-'
 // ProUOp -> 'as' TypeDef
-std::optional<CompilationError> Analyser::analyserUnaryExpression(
-    std::shared_ptr<Item> lhs) {
-  std::optional<miniplc0::CompilationError> err;
-  std::optional<miniplc0::Token> next;
+ExprNodePtr Analyser::analyserUnaryExpression() {
+  auto node = std::make_shared<UnaryExprNode>();
+  optional<miniplc0::Token> next;
 
   // - *
   int64_t nega = 0;
@@ -102,11 +102,11 @@ std::optional<CompilationError> Analyser::analyserUnaryExpression(
     ++nega;
   }
 
-  err = analyserItemExpression(lhs);
-  if (err.has_value()) return err;
+  auto ident = analyserItemExpression();
+  node->_ident = ident;
 
   if (nega & 1) {
-    lhs->p_code_gen.generateNega(lhs->type);
+    node->_nega = true;
   }
 
   // AS
@@ -119,8 +119,7 @@ std::optional<CompilationError> Analyser::analyserUnaryExpression(
     } else {
       next = nextToken();
       if (!next.has_value() || !next.value().isTokenAType()) {
-        return std::make_optional<CompilationError>(_current_pos,
-                                                    ErrorCode::ErrNeedType);
+        throw AnalyserError({_current_pos, ErrorCode::ErrNeedType});
       }
       as_flag = true;
     }
@@ -129,36 +128,37 @@ std::optional<CompilationError> Analyser::analyserUnaryExpression(
   // 显然只有最后一个as的值有用
   if (as_flag) {
     auto as_type = next.value().GetType();
-    lhs->type = as_type;
-    lhs->p_code_gen.generateAs(lhs->type, as_type);
+    // lhs->type = as_type;
+    // lhs->p_code_gen.generateAs(lhs->type, as_type);
+    node->_type = as_type;
   }
-  return {};
+
+  return node;
 }
 
 // <运算符表达式> opexpr -> Unary op Unary;
 // 5 + 1 + 4 * 3 + 5 * 4 + 2
 // 初始token_type记录当前正在分析的运算类型
 // 初始为默认值（对应优先级最小）
-std::optional<CompilationError> Analyser::analyseOperatorExpression(
-    std::shared_ptr<Item> lhs, TokenType token_type) {
-  std::optional<miniplc0::CompilationError> err;
-  std::optional<miniplc0::Token> next;
+ExprNodePtr Analyser::analyseOperatorExpression(ExprNodePtr _expr) {
+  auto node = std::make_shared<OpExprNode>();
+  optional<miniplc0::Token> next;
 
+  auto op_expr = std::dynamic_pointer_cast<OpExprNode>(_expr);
   while (true) {
     next = nextToken();
     // 如果之前在计算 * ，且现在遇到 +，则需要停止向下递归
     // 否则继续分析
+
     if (!next.has_value() || !next.value().isTokenABinaryOperator() ||
-        next.value() < token_type) {
+        next.value() < op_expr->_operator) {
       unreadToken();
       return {};
     }
 
     auto current_op = next.value();
 
-    auto rhs = std::shared_ptr<Item>(new Item());
-    err = analyserUnaryExpression(rhs);
-    if (err.has_value()) return err;
+    auto rhs = analyserUnaryExpression();
 
     while (true) {
       next = nextToken();
@@ -173,210 +173,141 @@ std::optional<CompilationError> Analyser::analyseOperatorExpression(
       auto next_op = next.value();
       // + 遇上 * ，递归，rhs变lhs
       unreadToken();
-      err = analyseOperatorExpression(rhs, next_op.GetType());
-      if (err.has_value()) return err;
+      analyseOperatorExpression(rhs);
     }
 
     // 结合lhs和rhs
+    op_expr->_rhs = rhs;
+    op_expr->_operator = current_op.GetType();
     // lhs = lhs + rhs;
     // 添加运算符
-    lhs->combine(current_op.GetType(), rhs);
+    // lhs->combine(current_op.GetType(), rhs);
   }
 
-  return {};
+  return op_expr;
 }
 
 // <赋值表达式>
 // assign_expr -> l_expr '=' expr
-std::optional<CompilationError> Analyser::analyseAssignExpression(
-    std::shared_ptr<Item> lhs) {
-  std::optional<miniplc0::CompilationError> err;
-  std::optional<miniplc0::Token> next = nextToken();
-  if (!next.has_value() || next.value().GetType() != TokenType::IDENTIFIER) {
-    return std::make_optional<CompilationError>(_current_pos,
-                                                ErrorCode::ErrCompiler);
-  }
+ExprNodePtr Analyser::analyseAssignExpression() {
+  auto node = std::make_shared<AssignExprNode>();
+  auto lhs = analyseIdentExpression();
+  node->_lhs = lhs;
 
-  auto var_name = next.value().GetValueString();
-  auto var = _symbol_table_stack.getVariableByName(var_name);
-  if (!var.has_value()) {
-    return std::make_optional<CompilationError>(
-        _current_pos, ErrorCode::ErrNeedDeclareSymbol);
-  }
-  if (var.value().is_const) {
-    return std::make_optional<CompilationError>(_current_pos,
-                                                ErrorCode::ErrAssignToConstant);
-  }
-
-  lhs->p_code_gen.generateGetVariable(var->id, var->vt);
-
-  next = nextToken();
+  auto next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::ASSIGN) {
-    return std::make_optional<CompilationError>(_current_pos,
-                                                ErrorCode::ErrCompiler);
+    throw AnalyserError({_current_pos, ErrorCode::ErrCompiler});
   }
 
-  err = analyseExpression(lhs);
-  if (err.has_value()) return err;
-
-  lhs->p_code_gen.generateStore();
-  return {};
+  auto rhs = analyseExpression();
+  node->_rhs = rhs;
+  return node;
 }
 
-// // <类型转换表达式>
-// // as_expr -> expr 'as' ty
-// std::optional<CompilationError> Analyser::analyseAsExpression() {
-//   std::optional<miniplc0::CompilationError> err;
-//   std::optional<miniplc0::Token> next = nextToken();
-//   return {};
-// }
-
 // <函数调用表达式>
-std::optional<CompilationError> Analyser::analyseCallExpression(
-    std::shared_ptr<Item> lhs) {
-  std::optional<miniplc0::CompilationError> err;
+ExprNodePtr Analyser::analyseCallExpression() {
+  auto node = std::make_shared<CallExprNode>();
 
-  std::optional<miniplc0::Token> next = nextToken();
-
+  optional<miniplc0::Token> next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::IDENTIFIER) {
-    return std::make_optional<CompilationError>(_current_pos,
-                                                ErrorCode::ErrNeedIdentifier);
+    throw AnalyserError({_current_pos, ErrorCode::ErrNeedIdentifier});
   }
 
   auto call_func_name = next.value().GetValueString();
-  if (!_symbol_table_stack.isFunctionDeclared(call_func_name))
-    return std::make_optional<CompilationError>(
-        _current_pos, ErrorCode::ErrNeedDeclareSymbol);
-  auto call_func = _symbol_table_stack.getFunctionByName(call_func_name);
+  node->_name = call_func_name;
 
   next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::LEFT_BRACKET) {
-    return std::make_optional<CompilationError>(_current_pos,
-                                                ErrorCode::ErrNeedBracket);
+    throw AnalyserError({_current_pos, ErrorCode::ErrNeedBracket});
   }
 
-  lhs->p_code_gen.generateStackAlloc(call_func.value().return_slots);
+  next = nextToken();
+  if (next.has_value() && next.value().GetType() == TokenType::RIGHT_BRACKET) {
+    return {};
+  }
+  unreadToken();
+  // lhs->p_code_gen.generateStackAlloc(call_func.value().return_slots);
 
   // 传入参数列表
-  // TODO
-  for (int i = 0; i < call_func.value().param_slots; ++i) {
-    auto param = call_func.value().params[i];
-    err = analyseExpression(lhs);
-    if (err.has_value())
-      return std::make_optional<CompilationError>(_current_pos,
-                                                  ErrorCode::ErrNeedIdentifier);
-
-    if (i == call_func.value().param_slots - 1) break;
-
+  while (true) {
+    auto param = analyseExpression();
+    node->_params.emplace_back(param);
     next = nextToken();
     if (!next.has_value() || next.value().GetType() != TokenType::COMMA) {
-      return std::make_optional<CompilationError>(_current_pos,
-                                                  ErrorCode::ErrNeedIdentifier);
+      unreadToken();
+      break;
     }
   }
 
   next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::RIGHT_BRACKET) {
-    return std::make_optional<CompilationError>(_current_pos,
-                                                ErrorCode::ErrNeedBracket);
+    throw AnalyserError({_current_pos, ErrorCode::ErrNeedBracket});
   }
 
-  //  StackAlloc(0)
-  //    26: Push(2)
-  //    27: Push(22)
-  //    28: Call(1)
-  lhs->p_code_gen.generateCallFunction(call_func->id);
-
-  return {};
+  return node;
 }
 
 // <字面量表达式>
-std::optional<CompilationError> Analyser::analyseLiteralExpression(
-    std::shared_ptr<Item> lhs) {
-  std::optional<miniplc0::CompilationError> err;
-  std::optional<miniplc0::Token> next = nextToken();
-
-  if (next.has_value() &&
-      next.value().GetType() == TokenType::UNSIGNED_INTEGER) {
+ExprNodePtr Analyser::analyseLiteralExpression() {
+  auto node = std::make_shared<ItemExprNode>();
+  optional<miniplc0::Token> next = nextToken();
+  if (!next.has_value()) {
+    throw AnalyserError({_current_pos, ErrorCode::ErrCompiler});
+  } else if (next.value().GetType() == TokenType::UNSIGNED_INTEGER) {
     // 64 位有符号整数 int
     auto val_str = next.value().GetValueString();
-    int64_t val = StringToUnsignedInt64(val_str);
+    int64_t *val = new int64_t(StringToUnsignedInt64(val_str));
 
-    lhs->type = TokenType::INT;
-    lhs->p_code_gen.generateInt64(val);
+    node->_type = TokenType::INT;
+    node->_value = reinterpret_cast<int64_t *>(val);
+    // lhs->p_code_gen.generateInt64(val);
 
-  } else if (next.has_value() &&
-             next.value().GetType() == TokenType::UNSIGNED_DOUBLE) {
+  } else if (next.value().GetType() == TokenType::UNSIGNED_DOUBLE) {
     // TODO
     auto val_str = next.value().GetValueString();
-    double val = StringToUnsignedDouble(val_str);
+    double *val = new double(StringToUnsignedDouble(val_str));
 
-    lhs->type = TokenType::DOUBLE;
-    lhs->p_code_gen.generateDouble(val);
+    node->_type = TokenType::DOUBLE;
+    node->_value = reinterpret_cast<int64_t *>(val);
+    // lhs->p_code_gen.generateDouble(val);
 
-  } else if (next.has_value() &&
-             next.value().GetType() == TokenType::CHAR_LITERAL) {
-  } else if (next.has_value() &&
-             next.value().GetType() == TokenType::STRING_LITERAL) {
+  } else if (next.value().GetType() == TokenType::CHAR_LITERAL) {
+  } else if (next.value().GetType() == TokenType::STRING_LITERAL) {
   } else {
-    return std::make_optional<CompilationError>(_current_pos,
-                                                ErrorCode::ErrRecognized);
+    throw AnalyserError({_current_pos, ErrorCode::ErrRecognized});
   }
 
-  return {};
+  return node;
 }
 
 // <标识符表达式>
-std::optional<CompilationError> Analyser::analyseIdentExpression(
-    std::shared_ptr<Item> lhs) {
-  std::optional<miniplc0::CompilationError> err;
-  std::optional<miniplc0::Token> next = nextToken();
+ExprNodePtr Analyser::analyseIdentExpression() {
+  auto node = std::make_shared<IdentExprNode>();
+  optional<miniplc0::Token> next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::IDENTIFIER) {
-    return std::make_optional<CompilationError>(_current_pos,
-                                                ErrorCode::ErrNeedIdentifier);
+    throw AnalyserError({_current_pos, ErrorCode::ErrNeedIdentifier});
   }
 
-  auto ident_name = next.value().GetValueString();
-  auto var = _symbol_table_stack.getVariableByName(ident_name);
-  if (!var.has_value()) {
-    return std::make_optional<CompilationError>(
-        _current_pos, ErrorCode::ErrNeedDeclareSymbol);
-  }
-  switch (var.value().vt) {
-    case VariableType::LOCAL:
-    case VariableType::GLOBAL:
-    case VariableType::PARAM:
-      lhs->p_code_gen.generateLoadVariable(var.value().id, var.value().vt);
-      break;
-    default:
-      return std::make_optional<CompilationError>(_current_pos,
-                                                  ErrorCode::ErrCompiler);
-  }
-
-  lhs->type = var.value().type;
-  return {};
+  node->_name = next.value().GetValueString();
+  // lhs->_type = var.value().type;
+  return node;
 }
 
 // <括号表达式>
-std::optional<CompilationError> Analyser::analyseBracketExpression(
-    std::shared_ptr<Item> lhs) {
-  std::optional<miniplc0::CompilationError> err;
-  std::optional<miniplc0::Token> next = nextToken();
+ExprNodePtr Analyser::analyseBracketExpression() {
+  optional<miniplc0::Token> next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::LEFT_BRACKET) {
-    return std::make_optional<CompilationError>(_current_pos,
-                                                ErrorCode::ErrNeedBracket);
+    throw AnalyserError({_current_pos, ErrorCode::ErrNeedBracket});
   }
 
-  err = analyseExpression(lhs);
-  if (err.has_value()) return err;
+  auto node = analyseExpression();
 
   next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::RIGHT_BRACKET) {
-    return std::make_optional<CompilationError>(_current_pos,
-                                                ErrorCode::ErrNeedBracket);
+    throw AnalyserError({_current_pos, ErrorCode::ErrNeedBracket});
   }
 
-  return {};
+  return node;
 }
 
 }  // namespace miniplc0

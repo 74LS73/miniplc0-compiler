@@ -9,6 +9,7 @@
 #include "instruction/instruction.h"
 #include "tokenizer/token.h"
 #include "generator/generator.h"
+#include "prog_node.h"
 
 namespace miniplc0 {
 
@@ -55,29 +56,5 @@ struct FunctionItem {
   bool need_return;
   std::vector<Instruction> body;
 };
-
-struct OpExprItem {
-  // TODO
-  std::shared_ptr<OpExprItem> _lhs;
-  std::shared_ptr<OpExprItem> _rhs;
-  TokenType _operator;
-  // std::vector<Instruction> body;
-  friend void swap(OpExprItem &lhs, OpExprItem &rhs);
-  // OpExprItem &operator+(const OpExprItem &other) {
-  //   for (auto &ins : other.body) {
-  //     this->body.push_back(ins);
-  //   }
-  //   return *this;
-  // }
-  OpExprItem &operator=(OpExprItem &other) {
-    swap(*this, other);
-    return *this;
-  }
-};
-
-inline void swap(OpExprItem &lhs, OpExprItem &rhs) {
-  using std::swap;
-  // swap(lhs.body, rhs.body);
-}
 
 }  // namespace miniplc0

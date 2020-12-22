@@ -43,7 +43,7 @@ class Analyser final {
   Analyser &operator=(Analyser) = delete;
 
   // 唯一接口
-  std::pair<std::vector<Instruction>, optional<CompilationError>> Analyse();
+  NodePtr Analyse();
 
  private:
   // 所有的递归子程序
@@ -100,7 +100,7 @@ class Analyser final {
   void analyseFunctionParamList(FuncNodePtr &);
 
   /* 以下为程序结构 */
-  optional<CompilationError> analyseProgram();
+  ProgNodePtr analyseProgram();
 
  private:
   // 返回下一个 token

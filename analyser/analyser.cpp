@@ -4,13 +4,9 @@
 
 namespace miniplc0 {
 
-pair<vector<Instruction>, optional<CompilationError>>
-Analyser::Analyse() {
-  auto err = analyseProgram();
-  if (err.has_value())
-    return std::make_pair(vector<Instruction>(), err);
-  else
-    return std::make_pair(_instructions, optional<CompilationError>());
+NodePtr Analyser::Analyse() {
+  auto node = analyseProgram();
+  return node;
 }
 
 // 返回下一个Token

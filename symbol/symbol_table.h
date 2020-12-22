@@ -8,7 +8,7 @@
 #include "instruction/instruction.h"
 #include "tokenizer/token.h"
 #include "generator/generator.h"
-
+#include "type.h"
 
 
 namespace miniplc0 {

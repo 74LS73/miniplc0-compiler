@@ -4,11 +4,15 @@
 #include <utility>
 #include <vector>
 
+#include "analyser/analyser.h"
 #include "instruction/instruction.h"
+#include "symbol/symbol_table_stack.h"
 #include "symbol/type.h"
 #include "tokenizer/token.h"
 
 namespace miniplc0 {
+
+using std::vector;
 
 class Generator final {
  public:
@@ -36,7 +40,31 @@ class Generator final {
   void fixBreakAndContinue();
 
  private:
+  SymbolTableStack _symbol_table_stack;
   std::vector<Instruction> _instructions;
+
+ private:
+  void generateProgram(ProgNodePtr);
+
+  void generateFunction(FuncNodePtr);
+  vector<VariableItem> &generateFunctionParam(FuncNodePtr);
+
+  void generateStat(StatNodePtr);
+  void generateExprStat(ExprStatNodePtr);
+  void generateBlockStat(BlockStatNodePtr);
+  void generateDeclStat(DeclStatNodePtr);
+  void generateIfStat(IfStatNodePtr);
+  void generateWhileStat(WhileStatNodePtr);
+  void generateBreakStat(BreakStatNodePtr);
+  void generateContinueStat(ContinueStatNodePtr);
+  void generateReturnStat(ReturnStatNodePtr);
+  void generateWhileStat(BlockStatNodePtr);
+
+  void generateAssignExpr(AssignExprNodePtr);
+  void generateUnaryExpr(UnaryExprNodePtr);
+  void generateOpExpr(OpExprNode);
+
+  void generateCallExpr(CallExprNodePtr);
 };
 
 }  // namespace miniplc0

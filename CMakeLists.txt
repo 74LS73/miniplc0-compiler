@@ -42,6 +42,10 @@ set(lib_src
 	instruction/instruction.h
 	generator/generator.h
 	generator/generator.cpp
+	generator/gen_prog.cpp
+	generator/gen_func.cpp
+	generator/gen_stat.cpp
+	generator/gen_expr.cpp
 )
 
 set(main_src

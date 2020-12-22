@@ -29,8 +29,8 @@ void Analyse(std::istream &input, std::ostream &output) {
   miniplc0::Analyser analyser(tks);
   try {
     auto p = analyser.Analyse();
-    auto v = p.first;
-    for (auto &it : v) output << fmt::format("{}\n", it);
+    // auto v = p.first;
+    // for (auto &it : v) output << fmt::format("{}\n", it);
   } catch (miniplc0::CompilationError &error) {
     fmt::print(stderr, "Syntactic analysis error: {}\n", error);
     exit(0);

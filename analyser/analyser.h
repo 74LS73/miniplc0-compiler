@@ -110,7 +110,6 @@ class Analyser final {
   void unreadToken();
 
  private:
-  SymbolTableStack _symbol_table_stack;
 
   std::vector<Token> _tokens;
   std::size_t _offset;

@@ -18,35 +18,39 @@ using std::shared_ptr;
 class ExprNode : public Node {
  public:
   TokenType _type;
-  ExprNode() : _type(TokenType::VOID) {}
+  ExprNode() : _type(TokenType::VOID) { _ntype = NodeType::ExprNode; }
 };
 
 struct AssignExprNode : public ExprNode {
   shared_ptr<ExprNode> _lhs;
   shared_ptr<ExprNode> _rhs;
+  AssignExprNode() { _ntype = NodeType::AssignExprNode; }
 };
 
 class ItemExprNode : public ExprNode {
  public:
   int64_t *_value;
+  ItemExprNode() { _ntype = NodeType::ItemExprNode; }
 };
 
 class IdentExprNode : public ExprNode {
  public:
   std::string _name;
+  IdentExprNode() { _ntype = NodeType::IdentExprNode; }
 };
 
 class CallExprNode : public ExprNode {
  public:
   std::string _name;
   std::vector<shared_ptr<ExprNode>> _params;
+  CallExprNode() { _ntype = NodeType::CallExprNode; }
 };
 
 class UnaryExprNode : public ExprNode {
  public:
   bool _nega;
   shared_ptr<ExprNode> _ident;
-  UnaryExprNode() : _nega(false) {}
+  UnaryExprNode() : _nega(false) { _ntype = NodeType::UnaryExprNode; }
   UnaryExprNode &operator=(UnaryExprNode &other) {
     // swap(*this, other);
     return *this;
@@ -58,6 +62,7 @@ class OpExprNode : public UnaryExprNode {
   shared_ptr<ExprNode> _lhs;
   shared_ptr<ExprNode> _rhs;
   TokenType _operator;
+  OpExprNode() { _ntype = NodeType::OpExprNode; }
   friend void swap(OpExprNode &lhs, OpExprNode &rhs);
   OpExprNode &operator=(UnaryExprNode &other) {
     // swap(*this, other);

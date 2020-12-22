@@ -19,6 +19,7 @@ class FuncParamNode : public Node {
   shared_ptr<ExprNode> _ident;
   TokenType _type;
   bool _const;
+  FuncParamNode() { _ntype = NodeType::FuncParamNode; }
 };
 
 class FuncNode : public Node {
@@ -27,6 +28,7 @@ class FuncNode : public Node {
   vector<shared_ptr<FuncParamNode>> _params;
   TokenType _return_type;
   shared_ptr<StatNode> _body;
+  FuncNode() { _ntype = NodeType::FuncNode; }
 };
 
 typedef std::shared_ptr<FuncNode> FuncNodePtr;

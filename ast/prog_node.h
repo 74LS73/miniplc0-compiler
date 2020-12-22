@@ -21,6 +21,7 @@ class ProgNode : public Node{
  public:
   vector<shared_ptr<StatNode>> _vars;
   vector<shared_ptr<FuncNode>> _funcs;
+  ProgNode() { _ntype = NodeType::ProgNode; }
 };
 
 typedef std::shared_ptr<ProgNode> ProgNodePtr;

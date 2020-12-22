@@ -16,16 +16,19 @@ using std::shared_ptr;
 class StatNode : public Node {
  public:
   // std::vector<shared_ptr<ExprNode>> _exprs;
+  StatNode() { _ntype = NodeType::StatNode; }
 };
 
 class ExprStatNode : public StatNode {
  public:
   shared_ptr<ExprNode> _expr;
+  ExprStatNode() { _ntype = NodeType::ExprStatNode; }
 };
 
 class BlockStatNode : public StatNode {
  public:
   std::vector<shared_ptr<StatNode>> _stats;
+  BlockStatNode() { _ntype = NodeType::BlockStatNode; }
 };
 
 class DeclStatNode : public StatNode {
@@ -33,6 +36,7 @@ class DeclStatNode : public StatNode {
   bool _const;
   shared_ptr<ExprNode> _var;
   shared_ptr<ExprNode> _value;
+  DeclStatNode() { _ntype = NodeType::DeclStatNode; }
 };
 
 class IfStatNode : public StatNode {
@@ -40,19 +44,28 @@ class IfStatNode : public StatNode {
   shared_ptr<ExprNode> _expr;
   shared_ptr<StatNode> _if_block;
   shared_ptr<StatNode> _else_block;
+  IfStatNode() { _ntype = NodeType::IfStatNode; }
 };
 
 class WhileStatNode : public StatNode {
  public:
   shared_ptr<ExprNode> _expr;
   shared_ptr<StatNode> _block;
+  WhileStatNode() { _ntype = NodeType::WhileStatNode; }
 };
 
-class BreakStatNode : public StatNode {};
-class ContinueStatNode : public StatNode {};
+class BreakStatNode : public StatNode {
+ public:
+  BreakStatNode() { _ntype = NodeType::BreakStatNode; }
+};
+class ContinueStatNode : public StatNode {
+ public:
+  ContinueStatNode() { _ntype = NodeType::ContinueStatNode; }
+};
 class ReturnStatNode : public StatNode {
  public:
   shared_ptr<ExprNode> _expr;
+  ReturnStatNode() { _ntype = NodeType::ReturnStatNode; }
 };
 
 typedef std::shared_ptr<StatNode> StatNodePtr;

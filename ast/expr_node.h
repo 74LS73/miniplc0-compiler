@@ -50,10 +50,6 @@ class UnaryExprNode : public ExprNode {
   bool _nega;
   shared_ptr<ExprNode> _ident;
   UnaryExprNode() : _nega(false) { _ntype = NodeType::UnaryExprNode; }
-  UnaryExprNode &operator=(UnaryExprNode &other) {
-    // swap(*this, other);
-    return *this;
-  }
 };
 
 class OpExprNode : public UnaryExprNode {
@@ -62,11 +58,11 @@ class OpExprNode : public UnaryExprNode {
   shared_ptr<ExprNode> _rhs;
   TokenType _operator;
   OpExprNode() { _ntype = NodeType::OpExprNode; }
-  friend void swap(OpExprNode &lhs, OpExprNode &rhs);
-  OpExprNode &operator=(UnaryExprNode &other) {
-    // swap(*this, other);
-    return *this;
-  }
+  // friend void swap(OpExprNode &lhs, OpExprNode &rhs);
+  // OpExprNode &operator=(UnaryExprNode &other) {
+  //   // swap(*this, other);
+  //   return *this;
+  // }
 };
 
 typedef std::shared_ptr<ExprNode> ExprNodePtr;
@@ -77,15 +73,15 @@ typedef std::shared_ptr<CallExprNode> CallExprNodePtr;
 typedef std::shared_ptr<UnaryExprNode> UnaryExprNodePtr;
 typedef std::shared_ptr<OpExprNode> OpExprNodePtr;
 
-inline void swap(OpExprNode &lhs, OpExprNode &rhs) {
-  using std::swap;
-  // swap(lhs.body, rhs.body);
-}
+// inline void swap(OpExprNode &lhs, OpExprNode &rhs) {
+//   using std::swap;
+//   swap(lhs.body, rhs.body);
+// }
 
-inline void swap(UnaryExprNode &lhs, UnaryExprNode &rhs) {
-  using std::swap;
-  swap(lhs._nega, rhs._nega);
-  swap(lhs._ident, rhs._ident);
-}
+// inline void swap(UnaryExprNode &lhs, UnaryExprNode &rhs) {
+//   using std::swap;
+//   swap(lhs._nega, rhs._nega);
+//   swap(lhs._ident, rhs._ident);
+// }
 
 }  // namespace miniplc0

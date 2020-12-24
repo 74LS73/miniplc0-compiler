@@ -57,7 +57,7 @@ ExprNodePtr Analyser::analyseExpression() {
 ExprNodePtr Analyser::analyserItemExpression() {
   optional<Token> next = nextToken();
   if (!next.has_value()) {
-    throw AnalyserError({_current_pos, ErrorCode::ErrCompiler});
+    throw ErrorCode::ErrCompiler;
   } else if (next.value().GetType() == TokenType::IDENTIFIER) {
     next = nextToken();
 
@@ -120,7 +120,7 @@ ExprNodePtr Analyser::analyserUnaryExpression() {
     } else {
       next = nextToken();
       if (!next.has_value() || !next.value().isTokenAType()) {
-        throw AnalyserError({_current_pos, ErrorCode::ErrNeedType});
+        throw ErrorCode::ErrNeedType;
       }
       as_flag = true;
     }
@@ -155,7 +155,7 @@ ExprNodePtr Analyser::analyseOperatorExpression(ExprNodePtr _expr) {
 
     auto current_op = next.value();
     if (lhs->_operator != current_op.GetType())
-      throw AnalyserError({_current_pos, ErrorCode::ErrCompiler});
+      throw ErrorCode::ErrCompiler;
 
     auto rhs = analyserUnaryExpression();
 
@@ -219,7 +219,7 @@ ExprNodePtr Analyser::analyseAssignExpression() {
 
   auto next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::ASSIGN) {
-    throw AnalyserError({_current_pos, ErrorCode::ErrCompiler});
+    throw ErrorCode::ErrCompiler;
   }
 
   auto rhs = analyseExpression();
@@ -248,7 +248,7 @@ ExprNodePtr Analyser::analyseCallExpression() {
 
   next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::LEFT_BRACKET) {
-    throw AnalyserError({_current_pos, ErrorCode::ErrNeedBracket});
+    throw ErrorCode::ErrNeedBracket;
   }
 
   // 传入参数列表
@@ -270,7 +270,7 @@ ExprNodePtr Analyser::analyseCallExpression() {
 
   next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::RIGHT_BRACKET) {
-    throw AnalyserError({_current_pos, ErrorCode::ErrNeedBracket});
+    throw ErrorCode::ErrNeedBracket;
   }
 
   return node;
@@ -281,7 +281,7 @@ ExprNodePtr Analyser::analyseLiteralExpression() {
   auto node = std::make_shared<ItemExprNode>();
   optional<miniplc0::Token> next = nextToken();
   if (!next.has_value()) {
-    throw AnalyserError({_current_pos, ErrorCode::ErrCompiler});
+    throw ErrorCode::ErrCompiler;
   } else if (next.value().GetType() == TokenType::UNSIGNED_INTEGER) {
     // 64 位有符号整数 int
     auto val_str = next.value().GetValueString();
@@ -303,7 +303,7 @@ ExprNodePtr Analyser::analyseLiteralExpression() {
   } else if (next.value().GetType() == TokenType::CHAR_LITERAL) {
   } else if (next.value().GetType() == TokenType::STRING_LITERAL) {
   } else {
-    throw AnalyserError({_current_pos, ErrorCode::ErrRecognized});
+    throw ErrorCode::ErrRecognized;
   }
 
   return node;
@@ -326,14 +326,14 @@ IdentExprNodePtr Analyser::analyseIdentExpression() {
 ExprNodePtr Analyser::analyseBracketExpression() {
   optional<miniplc0::Token> next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::LEFT_BRACKET) {
-    throw AnalyserError({_current_pos, ErrorCode::ErrNeedBracket});
+    throw ErrorCode::ErrNeedBracket;
   }
 
   auto node = analyseExpression();
 
   next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::RIGHT_BRACKET) {
-    throw AnalyserError({_current_pos, ErrorCode::ErrNeedBracket});
+    throw ErrorCode::ErrNeedBracket;
   }
 
   return node;

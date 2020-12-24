@@ -10,7 +10,7 @@ FuncNodePtr Analyser::analyseFunction() {
   auto node = std::make_shared<FuncNode>();
   auto next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::FN) {
-    throw AnalyserError({_current_pos, ErrorCode::ErrNeedDeclareSymbol});
+    throw ErrorCode::ErrNeedDeclareSymbol;
   }
 
   // Identifier
@@ -23,7 +23,7 @@ FuncNodePtr Analyser::analyseFunction() {
   // (
   next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::LEFT_BRACKET) {
-    throw AnalyserError({_current_pos, ErrorCode::ErrNeedBracket});
+    throw ErrorCode::ErrNeedBracket;
   }
 
   _symbol_table_stack.pushNextScope();
@@ -40,20 +40,20 @@ FuncNodePtr Analyser::analyseFunction() {
   // )
   next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::RIGHT_BRACKET) {
-    throw AnalyserError({_current_pos, ErrorCode::ErrNeedBracket});
+    throw ErrorCode::ErrNeedBracket;
   }
 
 ARROW:
   // ->
   next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::ARROW) {
-    throw AnalyserError({_current_pos, ErrorCode::ErrNeedArrow});
+    throw ErrorCode::ErrNeedArrow;
   }
 
   // return_type
   next = nextToken();
   if (!next.has_value() || !next.value().isTokenAType()) {
-    throw AnalyserError({_current_pos, ErrorCode::ErrNeedType});
+    throw ErrorCode::ErrNeedType;
   }
 
   node->_return_type = next.value().GetType();
@@ -90,13 +90,13 @@ void Analyser::analyseFunctionParameter(FuncNodePtr &func) {
 
   next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::COLON) {
-    throw AnalyserError({_current_pos, ErrorCode::ErrNeedColon});
+    throw ErrorCode::ErrNeedColon;
   }
 
   next = nextToken();
 
   if (!next.has_value() || !next.value().isTokenAType()) {
-    throw AnalyserError({_current_pos, ErrorCode::ErrNeedType});
+    throw ErrorCode::ErrNeedType;
   }
   param->_type = next->GetType();
 

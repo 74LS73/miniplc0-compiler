@@ -5,8 +5,12 @@
 namespace miniplc0 {
 
 NodePtr Analyser::Analyse() {
-  auto node = analyseProgram();
-  return node;
+  try {
+    auto node = analyseProgram();
+    return node;
+  } catch (const ErrorCode& ecode) {
+    throw AnalyserError(_current_pos, ecode);
+  }
 }
 
 // 返回下一个Token
@@ -16,8 +20,7 @@ optional<Token> Analyser::nextToken() {
   // 所以我们选择 _tokens[0..._offset-1] 的 EndPos 作为当前位置
   _current_pos = _tokens[_offset].GetEndPos();
   // 自动忽略comment
-  while (_tokens[_offset].GetType() == TokenType::COMMENT)
-    ++_offset;
+  while (_tokens[_offset].GetType() == TokenType::COMMENT) ++_offset;
   return _tokens[_offset++];
 }
 
@@ -30,8 +33,7 @@ optional<TokenType> Analyser::peekATokenGetType() {
 void Analyser::unreadToken() {
   if (_offset == 0) DieAndPrint("analyser unreads token from the begining.");
   // 自动忽略comment
-  while (_tokens[_offset - 1].GetType() == TokenType::COMMENT)
-    --_offset;
+  while (_tokens[_offset - 1].GetType() == TokenType::COMMENT) --_offset;
   _current_pos = _tokens[_offset - 1].GetEndPos();
   _offset--;
 }

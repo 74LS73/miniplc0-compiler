@@ -6,9 +6,7 @@
 #include <string>
 
 #include "symbol/type.h"
-#include "instruction/instruction.h"
 #include "tokenizer/token.h"
-#include "generator/generator.h"
 #include "prog_node.h"
 
 namespace miniplc0 {
@@ -22,7 +20,6 @@ namespace miniplc0 {
 
 struct Item {
   TokenType type;
-  Generator p_code_gen;
 
   void combine(TokenType op, std::shared_ptr<miniplc0::Item>);
 };

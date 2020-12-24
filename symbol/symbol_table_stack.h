@@ -29,14 +29,14 @@ class SymbolTableStack final {
   bool isFunctionDeclared(const std::string &);
   bool isGlobalVariableDeclared(const std::string &);
 
-  void declareVariable(VariableItem &);
-  void declareGlobalVariable(VariableItem &);
-  void declareFunction(FunctionItem &);
+  void declareVariable(DeclStatNodePtr);
+  void declareGlobalVariable(DeclStatNodePtr);
+  void declareFunction(FuncNodePtr);
 
   int getVariableNumber();
-  std::optional<VariableItem> getVariableByName(std::string);
-  std::optional<VariableItem> getGlobalVariableByName(std::string);
-  std::optional<FunctionItem> getFunctionByName(std::string);
+  DeclStatNodePtr getVariableByName(std::string);
+  DeclStatNodePtr getGlobalVariableByName(std::string);
+  FuncNodePtr getFunctionByName(std::string);
   int getCurrentScopeLevel();
 
  private:

@@ -5,8 +5,6 @@
 #include <memory>  // for std::shared_ptr
 #include <string>
 
-#include "generator/generator.h"
-#include "instruction/instruction.h"
 #include "node.h"
 #include "symbol/type.h"
 #include "tokenizer/token.h"
@@ -36,6 +34,7 @@ class ItemExprNode : public ExprNode {
 class IdentExprNode : public ExprNode {
  public:
   std::string _name;
+  bool _const;
   IdentExprNode() { _ntype = NodeType::IdentExprNode; }
 };
 

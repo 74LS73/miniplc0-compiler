@@ -34,8 +34,9 @@ class BlockStatNode : public StatNode {
 class DeclStatNode : public StatNode {
  public:
   bool _const;
-  shared_ptr<ExprNode> _var;
+  std::string _name;
   shared_ptr<ExprNode> _value;
+  TokenType _type;
   DeclStatNode() { _ntype = NodeType::DeclStatNode; }
 };
 

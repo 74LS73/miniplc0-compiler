@@ -3,18 +3,26 @@
 namespace miniplc0 {
 
 template <typename T>
-void SymbolTable::_add(std::map<std::string, T> &mp,
-                       T item, int &_nextTokenIndex) {
-  mp[item.name] = item;
+void SymbolTable::_add(std::map<std::string, T> &mp, string &name, T item,
+                       int &_nextTokenIndex) {
+  mp[name] = item;
   _nextTokenIndex++;
 }
 
-void SymbolTable::addVariable(VariableItem item) {
-  _add(_vars, item, _nextFunctionIndex);
+void SymbolTable::addVariable(DeclStatNodePtr decl) {
+  std::string name = decl->_name;
+  if (hasFunction(name)) {
+    throw ErrorCode::ErrDuplicateDeclaration;
+  }
+  _add(_vars, name, decl, _nextFunctionIndex);
 }
 
-void SymbolTable::addFunction(FunctionItem item) {
-  _add(_function, item, _nextFunctionIndex);
+void SymbolTable::addFunction(FuncNodePtr func) {
+  std::string name = func->_name;
+  if (hasFunction(name)) {
+    throw ErrorCode::ErrDuplicateDeclaration;
+  }
+  _add(_function, name, func, _nextFunctionIndex);
 }
 
 bool SymbolTable::hasFunction(const std::string &s) {
@@ -29,23 +37,21 @@ bool SymbolTable::isDeclared(const std::string &s) {
 
 bool SymbolTable::isConstant(const std::string &s) {
   auto item = _vars[s];
-  return item.is_const;
+  return item->_const;
 }
 
 int SymbolTable::getVariableNumber() { return _vars.size(); }
 
-std::optional<VariableItem> SymbolTable::getVariableByName(std::string &s) {
-  if (hasVariable(s)) {
-    return std::make_optional(_vars[s]);
-  }
-  return {};
+DeclStatNodePtr SymbolTable::getVariableByName(std::string &s) {
+  auto var = _vars[s];
+  if (var != nullptr) return var;
+  throw ErrorCode::ErrNeedDeclareSymbol;
 }
 
-std::optional<FunctionItem> SymbolTable::getFunctionByName(std::string &s) {
-  if (hasFunction(s)) {
-    return std::make_optional(_function[s]);
-  }
-  return {};
+FuncNodePtr SymbolTable::getFunctionByName(std::string &s) {
+  auto func = _function[s];
+  if (func != nullptr) return func;
+  throw ErrorCode::ErrNeedDeclareSymbol;
 }
 
 }  // namespace miniplc0

@@ -6,7 +6,6 @@
 #include <string>
 
 #include "symbol/type.h"
-#include "tokenizer/token.h"
 #include "func_node.h"
 
 namespace miniplc0 {

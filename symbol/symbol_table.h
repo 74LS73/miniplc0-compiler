@@ -5,47 +5,43 @@
 #include <vector>
 
 #include "ast/ast.h"
+#include "generator/generator.h"
 #include "instruction/instruction.h"
 #include "tokenizer/token.h"
-#include "generator/generator.h"
 #include "type.h"
-
 
 namespace miniplc0 {
 
-
-
-
+using std::string;
 
 class SymbolTable final {
-  
  public:
-  SymbolTable(): _nextFunctionIndex(0), _nextVariableIndex(0) {};
+  SymbolTable() : _nextFunctionIndex(0), _nextVariableIndex(0){};
 
  private:
   int32_t _nextFunctionIndex;
   int32_t _nextVariableIndex;
-  std::map<std::string, VariableItem> _vars;
-  std::map<std::string, FunctionItem> _function;
-  
+  std::map<std::string, DeclStatNodePtr> _vars;
+  std::map<std::string, FuncNodePtr> _function;
+
   // helper function
-  template<typename T> 
-  void _add(std::map<std::string, T> &mp, T item, int &);
-  
+  template <typename T>
+  void _add(std::map<string, T> &, string &, T, int &);
+
  public:
-  void addVariable(VariableItem item);
-  void addFunction(FunctionItem item);
+  void addVariable(DeclStatNodePtr);
+  void addFunction(FuncNodePtr);
 
-  bool hasFunction(const std::string &);
-  bool hasVariable(const std::string &);
+  bool hasFunction(const string &);
+  bool hasVariable(const string &);
 
-  std::optional<VariableItem> getVariableByName(std::string &s);
-  std::optional<FunctionItem> getFunctionByName(std::string &s);
+  DeclStatNodePtr getVariableByName(string &s);
+  FuncNodePtr getFunctionByName(string &s);
 
   // 是否被声明过
-  bool isDeclared(const std::string &);
+  bool isDeclared(const string &);
   // 是否是常量
-  bool isConstant(const std::string &);
+  bool isConstant(const string &);
 
   int getVariableNumber();
 };

@@ -9,10 +9,9 @@
 
 #include "ast/ast.h"
 #include "error/error.h"
-#include "instruction/instruction.h"
-#include "symbol/symbol_table_stack.h"
 #include "tokenizer/token.h"
 #include "utils.h"
+#include "symbol/symbol_table_stack.h"
 
 namespace miniplc0 {
 
@@ -65,7 +64,7 @@ class Analyser final {
   // <字面量表达式>
   ExprNodePtr analyseLiteralExpression();
   // <标识符表达式>
-  ExprNodePtr analyseIdentExpression();
+  IdentExprNodePtr analyseIdentExpression();
   // <括号表达式>
   ExprNodePtr analyseBracketExpression();
 
@@ -87,7 +86,7 @@ class Analyser final {
   // <return 语句>
   StatNodePtr analyseReturnStatement();
   // <代码块>
-  StatNodePtr analyseBlockStatement();
+  BlockStatNodePtr analyseBlockStatement();
   // <空语句>
   StatNodePtr analyseEmptyStatement();
 
@@ -110,7 +109,7 @@ class Analyser final {
   void unreadToken();
 
  private:
-
+  SymbolTableStack _symbol_table_stack;
   std::vector<Token> _tokens;
   std::size_t _offset;
   std::vector<Instruction> _instructions;

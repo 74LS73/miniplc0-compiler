@@ -72,18 +72,22 @@ StatNodePtr Analyser::analyseDeclStatement() {
   auto next = nextToken();
 
   if (!next.has_value()) {
-    throw AnalyserError({_current_pos, ErrorCode::ErrNeedDeclareSymbol});
+    throw ErrorCode::ErrNeedDeclareSymbol;
   } else if (next.value().GetType() == TokenType::LET) {
     node->_const = false;
   } else if (next.value().GetType() == TokenType::CONST) {
-    node->_const = true;
+    node->_const = false;
   } else {
-    throw AnalyserError({_current_pos, ErrorCode::ErrNeedDeclareSymbol});
+    throw ErrorCode::ErrNeedDeclareSymbol;
   }
 
   // IDENT
-  auto var = analyseIdentExpression();
-  node->_var = std::dynamic_pointer_cast<IdentExprNode>(var);
+  next = nextToken();
+  if (!next.has_value() || next.value().GetType() != TokenType::IDENTIFIER) {
+    throw ErrorCode::ErrNeedIdentifier;
+  }
+  node->_name = next->GetValueString();
+
   // 在当前层添加identity是否合法
   // 在同一作用域内，一个标识符只能由一个变量或常量使用。
   // 变量或常量的类型不能为 void。
@@ -102,22 +106,25 @@ StatNodePtr Analyser::analyseDeclStatement() {
     throw AnalyserError({_current_pos, ErrorCode::ErrNeedType});
   }
 
-  node->_var->_type = next.value().GetType();
+  node->_type = next.value().GetType();
 
   // ASSIGN
   next = nextToken();
   if (next.has_value() && next.value().GetType() == TokenType::ASSIGN) {
     auto expr = analyseExpression();
+    if (expr->_type != node->_type) {
+      throw ErrorCode::ErrInvalidAssignment;
+    }
     node->_value = expr;
     next = nextToken();
-  } else if (node->_const = true) {
-    throw AnalyserError({_current_pos, ErrorCode::ErrConstantNeedValue});
+  } else if (node->_const == true) {
+    throw ErrorCode::ErrConstantNeedValue;
   }
 
   if (!next.has_value() || next.value().GetType() != TokenType::SEMICOLON)
     throw AnalyserError({_current_pos, ErrorCode::ErrNeedSemicolon});
 
-  // _symbol_table_stack.declareVariable(var);
+  _symbol_table_stack.declareVariable(node);
   // ++func.local_slots;
   return node;
 }
@@ -232,7 +239,7 @@ StatNodePtr Analyser::analyseReturnStatement() {
 }
 
 // block_stmt -> '{' stmt* '}'
-StatNodePtr Analyser::analyseBlockStatement() {
+BlockStatNodePtr Analyser::analyseBlockStatement() {
   auto node = std::make_shared<BlockStatNode>();
   auto next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::LEFT_BRACE) {

@@ -39,6 +39,8 @@ ExprNodePtr Analyser::analyseExpression() {
 
   op_expr->_lhs = unary;
   op_expr->_operator = next->GetType();
+  op_expr->_type = unary->_type;
+
   unreadToken();
   // shared_ptr<OpExprNode> op_expr;
   // auto lhs = std::dynamic_pointer_cast<OpExprNode>(unary);
@@ -63,22 +65,22 @@ ExprNodePtr Analyser::analyserItemExpression() {
       // FunctionCall
       unreadToken();
       unreadToken();
-      auto res = analyseCallExpression();
+      return analyseCallExpression();
 
     } else {
       // IDentifier
       unreadToken();
       unreadToken();
-      auto res = analyseIdentExpression();
+      return analyseIdentExpression();
     }
   } else if (next.value().GetType() == TokenType::LEFT_BRACKET) {
     unreadToken();
-    auto res = analyseBracketExpression();
+    return analyseBracketExpression();
 
   } else {
     // 字面量
     unreadToken();
-    auto res = analyseLiteralExpression();
+    return analyseLiteralExpression();
   }
 
   UNREACHABLE();
@@ -104,7 +106,6 @@ ExprNodePtr Analyser::analyserUnaryExpression() {
 
   auto ident = analyserItemExpression();
   node->_ident = ident;
-
   if (nega & 1) {
     node->_nega = true;
   }
@@ -131,8 +132,9 @@ ExprNodePtr Analyser::analyserUnaryExpression() {
     // lhs->type = as_type;
     // lhs->p_code_gen.generateAs(lhs->type, as_type);
     node->_type = as_type;
+  } else {
+    node->_type = ident->_type;
   }
-
   return node;
 }
 
@@ -164,6 +166,10 @@ ExprNodePtr Analyser::analyseOperatorExpression(ExprNodePtr _expr) {
         // End
         unreadToken();
         auto node = std::make_shared<OpExprNode>();
+        if (lhs->_type != rhs->_type) {
+          throw ErrorCode::ErrInvalidAssignment;
+        }
+        node->_type = lhs->_type;
         node->_lhs = lhs;
         node->_operator = current_op.GetType();
         node->_rhs = rhs;
@@ -178,18 +184,24 @@ ExprNodePtr Analyser::analyseOperatorExpression(ExprNodePtr _expr) {
       // + 遇上 * ，递归，rhs变lhs
       auto new_op_expr = std::make_shared<OpExprNode>();
       new_op_expr->_rhs = rhs;
+      new_op_expr->_type = rhs->_type;
       new_op_expr->_operator = next->GetType();
       unreadToken();
       rhs = analyseOperatorExpression(new_op_expr);
     }
     // 结合lhs和rhs
     auto tmp = std::make_shared<OpExprNode>();
+    if (lhs->_type != rhs->_type) {
+      throw ErrorCode::ErrInvalidAssignment;
+    }
+    tmp->_type = lhs->_type;
     tmp->_lhs = lhs;
     tmp->_rhs = rhs;
     tmp->_operator = current_op.GetType();
     lhs = std::make_shared<OpExprNode>();
     lhs->_lhs = tmp;
     lhs->_operator = current_op.GetType();
+    lhs->_type = tmp->_type;
     // lhs = lhs + rhs;
     // 添加运算符
     // lhs->combine(current_op.GetType(), rhs);
@@ -204,7 +216,6 @@ ExprNodePtr Analyser::analyseOperatorExpression(ExprNodePtr _expr) {
 ExprNodePtr Analyser::analyseAssignExpression() {
   auto node = std::make_shared<AssignExprNode>();
   auto lhs = analyseIdentExpression();
-  node->_lhs = lhs;
 
   auto next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::ASSIGN) {
@@ -212,7 +223,13 @@ ExprNodePtr Analyser::analyseAssignExpression() {
   }
 
   auto rhs = analyseExpression();
+  if (lhs->_type != rhs->_type) {
+    throw ErrorCode::ErrInvalidAssignment;
+  }
+
+  node->_lhs = lhs;
   node->_rhs = rhs;
+
   return node;
 }
 
@@ -220,12 +237,13 @@ ExprNodePtr Analyser::analyseAssignExpression() {
 ExprNodePtr Analyser::analyseCallExpression() {
   auto node = std::make_shared<CallExprNode>();
 
-  optional<miniplc0::Token> next = nextToken();
+  auto next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::IDENTIFIER) {
-    throw AnalyserError({_current_pos, ErrorCode::ErrNeedIdentifier});
+    throw ErrorCode::ErrNeedIdentifier;
   }
 
   auto call_func_name = next.value().GetValueString();
+  auto func = _symbol_table_stack.getFunctionByName(call_func_name);
   node->_name = call_func_name;
 
   next = nextToken();
@@ -233,21 +251,20 @@ ExprNodePtr Analyser::analyseCallExpression() {
     throw AnalyserError({_current_pos, ErrorCode::ErrNeedBracket});
   }
 
-  next = nextToken();
-  if (next.has_value() && next.value().GetType() == TokenType::RIGHT_BRACKET) {
-    return {};
-  }
-  unreadToken();
-  // lhs->p_code_gen.generateStackAlloc(call_func.value().return_slots);
-
   // 传入参数列表
-  while (true) {
+  int i = 0;
+  for (auto &fun_param : func->_params) {
     auto param = analyseExpression();
+    if (param->_type != fun_param->_type) {
+      // TODO
+      throw ErrorCode::ErrInvalidAssignment;
+    }
     node->_params.emplace_back(param);
+    i++;
+    if (i == func->_params.size()) break;
     next = nextToken();
     if (!next.has_value() || next.value().GetType() != TokenType::COMMA) {
-      unreadToken();
-      break;
+      throw ErrorCode::ErrInvalidAssignment;
     }
   }
 
@@ -293,14 +310,14 @@ ExprNodePtr Analyser::analyseLiteralExpression() {
 }
 
 // <标识符表达式>
-ExprNodePtr Analyser::analyseIdentExpression() {
+IdentExprNodePtr Analyser::analyseIdentExpression() {
   auto node = std::make_shared<IdentExprNode>();
   optional<miniplc0::Token> next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::IDENTIFIER) {
-    throw AnalyserError({_current_pos, ErrorCode::ErrNeedIdentifier});
+    throw ErrorCode::ErrNeedIdentifier;
   }
-
   node->_name = next.value().GetValueString();
+  _symbol_table_stack.getVariableByName(node->_name);
   // lhs->_type = var.value().type;
   return node;
 }

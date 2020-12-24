@@ -8,9 +8,7 @@ ProgNodePtr Analyser::analyseProgram() {
   optional<CompilationError> err;
 
   auto _start = std::make_shared<FuncNode>();
-  auto ident = std::make_shared<IdentExprNode>();
-  ident->_name = "_start";
-  _start->_ident = ident;
+  _start->_name = "_start";
 
   while (true) {
     auto next = nextToken();

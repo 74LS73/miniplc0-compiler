@@ -14,14 +14,19 @@ FuncNodePtr Analyser::analyseFunction() {
   }
 
   // Identifier
-  auto ident = analyseIdentExpression();
-  node->_ident = ident;
+  next = nextToken();
+  if (!next.has_value() || next.value().GetType() != TokenType::IDENTIFIER) {
+    throw ErrorCode::ErrNeedBracket;
+  }
+  node->_name = next->GetValueString();
 
   // (
   next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::LEFT_BRACKET) {
     throw AnalyserError({_current_pos, ErrorCode::ErrNeedBracket});
   }
+
+  _symbol_table_stack.pushNextScope();
 
   // 判断一下是否有参数
   next = nextToken();
@@ -53,27 +58,35 @@ ARROW:
 
   node->_return_type = next.value().GetType();
 
+  _symbol_table_stack.declareFunction(node);
+
   // body
   auto body = analyseBlockStatement();
   node->_body = body;
+
+  _symbol_table_stack.popCurrentScope();
 
   return node;
 }
 
 // function_param -> 'const'? IDENT ':' ty
 void Analyser::analyseFunctionParameter(FuncNodePtr &func) {
+  auto param = std::make_shared<DeclStatNode>();
+
   auto next = nextToken();
-  bool is_const = false;
+  param->_const = false;
   if (next.has_value() && next.value().GetType() == TokenType::CONST) {
-    is_const = true;
+    param->_const = true;
   } else {
     unreadToken();
   }
 
-  auto ident = analyseIdentExpression();
-  auto param = std::make_shared<FuncParamNode>();
-  param->_ident = ident;
-  param->_const = is_const;
+  next = nextToken();
+  if (!next.has_value() || next.value().GetType() != TokenType::IDENTIFIER) {
+    throw ErrorCode::ErrNeedIdentifier;
+  }
+
+  param->_name = next->GetValueString();
 
   next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::COLON) {
@@ -86,6 +99,9 @@ void Analyser::analyseFunctionParameter(FuncNodePtr &func) {
     throw AnalyserError({_current_pos, ErrorCode::ErrNeedType});
   }
   param->_type = next->GetType();
+
+  _symbol_table_stack.declareVariable(param);
+
   func->_params.emplace_back(param);
 
   return;

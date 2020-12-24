@@ -1,5 +1,8 @@
 #pragma once
+#include <vector>
 
+#include "tokenizer/token.h"
+#include "instruction/instruction.h"
 
 namespace miniplc0 {
 
@@ -34,7 +37,6 @@ struct FunctionItem {
   TokenType return_type;
   int64_t local_slots;
   bool need_return;
-  std::vector<Instruction> body;
 };
 
 

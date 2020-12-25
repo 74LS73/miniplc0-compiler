@@ -59,9 +59,11 @@ class Generator final {
   void generateReturnStat(ReturnStatNodePtr);
   void generateWhileStat(BlockStatNodePtr);
 
+
+  void generateExpr(ExprNodePtr);
   void generateAssignExpr(AssignExprNodePtr);
   void generateUnaryExpr(UnaryExprNodePtr);
-  void generateOpExpr(OpExprNode);
+  void generateOpExpr(OpExprNodePtr);
 
   void generateCallExpr(CallExprNodePtr);
 };

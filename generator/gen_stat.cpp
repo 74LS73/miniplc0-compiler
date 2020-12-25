@@ -63,7 +63,12 @@ void Generator::generateBlockStat(BlockStatNodePtr block_node) {
   }
 }
 
-void Generator::generateDeclStat(DeclStatNodePtr) {}
+void Generator::generateDeclStat(DeclStatNodePtr decl) {
+  if (decl->_value == nullptr) return;
+  generateLoadVariable(decl->_id, VariableType::PARAM);
+  generateExpr(decl->_value);
+  generateStore();
+}
 void Generator::generateIfStat(IfStatNodePtr) {}
 void Generator::generateWhileStat(WhileStatNodePtr) {}
 void Generator::generateBreakStat(BreakStatNodePtr) {}

@@ -3,20 +3,12 @@
 
 namespace miniplc0 {
 
-// dfsa
 
 void Generator::generateFunction(FuncNodePtr func_node) {
-  auto func = FunctionItem();
-  // _symbol_table_stack.declareFunction(func);
 
-  // _symbol_table_stack.pushNextScope();
-  func.return_type = func_node->_return_type;
-  // func.params = generateFunctionParam(func_node);
-
-  auto block = std::dynamic_pointer_cast<BlockStatNode>(func_node->_body);
+  auto block = func_node->_body;
   generateBlockStat(block);
 
-  // _symbol_table_stack.popCurrentScope();
 }
 
 // vector<VariableItem>& Generator::generateFunctionParam(FuncNodePtr func_node) {

@@ -154,8 +154,9 @@ ExprNodePtr Analyser::analyseOperatorExpression(ExprNodePtr _expr) {
     }
 
     auto current_op = next.value();
-    if (lhs->_operator != current_op.GetType())
+    if (lhs->_operator != current_op.GetType()) {
       throw ErrorCode::ErrCompiler;
+    }
 
     auto rhs = analyserUnaryExpression();
 
@@ -167,6 +168,7 @@ ExprNodePtr Analyser::analyseOperatorExpression(ExprNodePtr _expr) {
         unreadToken();
         auto node = std::make_shared<OpExprNode>();
         if (lhs->_type != rhs->_type) {
+          std::cout << lhs->_type << std::endl;
           throw ErrorCode::ErrInvalidAssignment;
         }
         node->_type = lhs->_type;
@@ -245,7 +247,8 @@ ExprNodePtr Analyser::analyseCallExpression() {
   auto call_func_name = next.value().GetValueString();
   auto func = _symbol_table_stack.getFunctionByName(call_func_name);
   node->_name = call_func_name;
-
+  node->_id = func->_id;
+  
   next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::LEFT_BRACKET) {
     throw ErrorCode::ErrNeedBracket;
@@ -317,8 +320,14 @@ IdentExprNodePtr Analyser::analyseIdentExpression() {
     throw ErrorCode::ErrNeedIdentifier;
   }
   node->_name = next.value().GetValueString();
-  _symbol_table_stack.getVariableByName(node->_name);
+  auto var = _symbol_table_stack.getVariableByName(node->_name);
+  
+  if (var->_const) {
+    throw ErrorCode::ErrAssignToConstant;
+  }
   // lhs->_type = var.value().type;
+  node->_type = var->_type;
+  node->_id = var->_id;
   return node;
 }
 

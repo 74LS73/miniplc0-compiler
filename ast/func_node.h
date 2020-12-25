@@ -21,6 +21,7 @@ class FuncNode : public Node {
   vector<DeclStatNodePtr> _params;
   TokenType _return_type;
   BlockStatNodePtr _body;
+  int64_t _id;
   FuncNode() { _ntype = NodeType::FuncNode; }
 };
 

@@ -37,6 +37,7 @@ class DeclStatNode : public StatNode {
   std::string _name;
   shared_ptr<ExprNode> _value;
   TokenType _type;
+  int64_t _id;
   DeclStatNode() { _ntype = NodeType::DeclStatNode; }
 };
 

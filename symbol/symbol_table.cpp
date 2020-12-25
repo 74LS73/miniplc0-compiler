@@ -6,6 +6,7 @@ template <typename T>
 void SymbolTable::_add(std::map<std::string, T> &mp, string &name, T item,
                        int &_nextTokenIndex) {
   mp[name] = item;
+  item->_id = _nextTokenIndex;
   _nextTokenIndex++;
 }
 

@@ -20,7 +20,7 @@ class ExprNode : public Node {
 };
 
 struct AssignExprNode : public ExprNode {
-  shared_ptr<ExprNode> _lhs;
+  shared_ptr<IdentExprNode> _lhs;
   shared_ptr<ExprNode> _rhs;
   AssignExprNode() { _ntype = NodeType::AssignExprNode; }
 };
@@ -35,12 +35,14 @@ class IdentExprNode : public ExprNode {
  public:
   std::string _name;
   bool _const;
+  int64_t _id;
   IdentExprNode() { _ntype = NodeType::IdentExprNode; }
 };
 
 class CallExprNode : public ExprNode {
  public:
   std::string _name;
+  int64_t _id;
   std::vector<shared_ptr<ExprNode>> _params;
   CallExprNode() { _ntype = NodeType::CallExprNode; }
 };

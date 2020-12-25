@@ -44,9 +44,8 @@ ExprNodePtr Analyser::analyseExpression() {
   unreadToken();
   // shared_ptr<OpExprNode> op_expr;
   // auto lhs = std::dynamic_pointer_cast<OpExprNode>(unary);
-  auto op_node = analyseOperatorExpression(op_expr);
 
-  return op_node;
+  return analyseOperatorExpression(op_expr);
 }
 
 // item ->
@@ -104,14 +103,15 @@ ExprNodePtr Analyser::analyserUnaryExpression() {
     ++nega;
   }
 
-  auto ident = analyserItemExpression();
-  node->_ident = ident;
+  auto item = analyserItemExpression();
+  node->_item = item;
   if (nega & 1) {
     node->_nega = true;
   }
 
   // AS
   int as_flag = false;
+  TokenType as_type;
   while (true) {
     next = nextToken();
     if (!next.has_value() || next.value().GetType() != TokenType::AS) {
@@ -122,18 +122,15 @@ ExprNodePtr Analyser::analyserUnaryExpression() {
       if (!next.has_value() || !next.value().isTokenAType()) {
         throw ErrorCode::ErrNeedType;
       }
+      as_type = next->GetType();
       as_flag = true;
     }
   }
-  // TODO
   // 显然只有最后一个as的值有用
   if (as_flag) {
-    auto as_type = next.value().GetType();
-    // lhs->type = as_type;
-    // lhs->p_code_gen.generateAs(lhs->type, as_type);
     node->_type = as_type;
   } else {
-    node->_type = ident->_type;
+    node->_type = item->_type;
   }
   return node;
 }
@@ -142,7 +139,7 @@ ExprNodePtr Analyser::analyserUnaryExpression() {
 // 5 + 1 + 4 * 3 + 5 * 4 + 2
 // 初始token_type记录当前正在分析的运算类型
 // 初始为默认值（对应优先级最小）
-ExprNodePtr Analyser::analyseOperatorExpression(ExprNodePtr _expr) {
+ExprNodePtr Analyser::analyseOperatorExpression(OpExprNodePtr _expr) {
   optional<Token> next;
 
   auto lhs = std::dynamic_pointer_cast<OpExprNode>(_expr);
@@ -152,7 +149,6 @@ ExprNodePtr Analyser::analyseOperatorExpression(ExprNodePtr _expr) {
       unreadToken();
       return lhs;
     }
-
     auto current_op = next.value();
     if (lhs->_operator != current_op.GetType()) {
       throw ErrorCode::ErrCompiler;
@@ -168,7 +164,6 @@ ExprNodePtr Analyser::analyseOperatorExpression(ExprNodePtr _expr) {
         unreadToken();
         auto node = std::make_shared<OpExprNode>();
         if (lhs->_type != rhs->_type) {
-          std::cout << lhs->_type << std::endl;
           throw ErrorCode::ErrInvalidAssignment;
         }
         node->_type = lhs->_type;
@@ -185,7 +180,7 @@ ExprNodePtr Analyser::analyseOperatorExpression(ExprNodePtr _expr) {
 
       // + 遇上 * ，递归，rhs变lhs
       auto new_op_expr = std::make_shared<OpExprNode>();
-      new_op_expr->_rhs = rhs;
+      new_op_expr->_lhs = rhs;
       new_op_expr->_type = rhs->_type;
       new_op_expr->_operator = next->GetType();
       unreadToken();
@@ -231,7 +226,6 @@ ExprNodePtr Analyser::analyseAssignExpression() {
 
   node->_lhs = lhs;
   node->_rhs = rhs;
-
   return node;
 }
 
@@ -248,7 +242,7 @@ ExprNodePtr Analyser::analyseCallExpression() {
   auto func = _symbol_table_stack.getFunctionByName(call_func_name);
   node->_name = call_func_name;
   node->_id = func->_id;
-  
+
   next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::LEFT_BRACKET) {
     throw ErrorCode::ErrNeedBracket;
@@ -321,7 +315,7 @@ IdentExprNodePtr Analyser::analyseIdentExpression() {
   }
   node->_name = next.value().GetValueString();
   auto var = _symbol_table_stack.getVariableByName(node->_name);
-  
+
   if (var->_const) {
     throw ErrorCode::ErrAssignToConstant;
   }

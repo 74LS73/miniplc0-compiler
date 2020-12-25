@@ -33,10 +33,10 @@ set(lib_src
 	ast/ast.cpp
 	analyser/analyser.h
 	analyser/analyser.cpp
-	analyser/program.cpp
-	analyser/expression.cpp
-	analyser/function.cpp
-	analyser/statement.cpp
+	analyser/anal_prog.cpp
+	analyser/anal_expr.cpp
+	analyser/anal_func.cpp
+	analyser/anal_stat.cpp
 	analyser/utils.h
 	analyser/utils.cpp
 	instruction/instruction.h

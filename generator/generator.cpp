@@ -3,8 +3,8 @@
 namespace miniplc0 {
 
 void Generator::operator+=(Generator &rhs) {
-  for (auto &ins : rhs._instructions) {
-    this->_instructions.emplace_back(ins);
+  for (auto &ins : rhs._cur_block) {
+    this->_cur_block.emplace_back(ins);
   }
 }
 
@@ -12,41 +12,41 @@ void Generator::generateOperation(TokenType type, TokenType op) {
   int bias = type - TokenType::INT;
   switch (op) {
     case TokenType::MULT_SIGN:
-      this->_instructions.emplace_back(Instruction(ISA(ISA::MUL_I + bias * 4)));
+      this->_cur_block.emplace_back(Instruction(ISA(ISA::MUL_I + bias * 4)));
       break;
     case TokenType::DIV_SIGN:
-      this->_instructions.emplace_back(Instruction(ISA(ISA::DIV_I + bias * 4)));
+      this->_cur_block.emplace_back(Instruction(ISA(ISA::DIV_I + bias * 4)));
       break;
     case TokenType::PLUS_SIGN:
-      this->_instructions.emplace_back(Instruction(ISA(ISA::ADD_I + bias * 4)));
+      this->_cur_block.emplace_back(Instruction(ISA(ISA::ADD_I + bias * 4)));
       break;
     case TokenType::MINUS_SIGN:
-      this->_instructions.emplace_back(Instruction(ISA(ISA::SUB_I + bias * 4)));
+      this->_cur_block.emplace_back(Instruction(ISA(ISA::SUB_I + bias * 4)));
       break;
     case TokenType::EQUAL:
-      this->_instructions.emplace_back(Instruction(ISA(ISA::CMP_I + bias * 2)));
-      this->_instructions.emplace_back(Instruction(ISA::NOT));
+      this->_cur_block.emplace_back(Instruction(ISA(ISA::CMP_I + bias * 2)));
+      this->_cur_block.emplace_back(Instruction(ISA::NOT));
       break;
     case TokenType::NO_EQUAL:
-      this->_instructions.emplace_back(Instruction(ISA(ISA::CMP_I + bias * 2)));
+      this->_cur_block.emplace_back(Instruction(ISA(ISA::CMP_I + bias * 2)));
       break;
     case TokenType::LESS_SIGN:
-      this->_instructions.emplace_back(Instruction(ISA(ISA::CMP_I + bias * 2)));
-      this->_instructions.emplace_back(Instruction(ISA::SET_LT));
+      this->_cur_block.emplace_back(Instruction(ISA(ISA::CMP_I + bias * 2)));
+      this->_cur_block.emplace_back(Instruction(ISA::SET_LT));
       break;
     case TokenType::GREATER_SIGN:
-      this->_instructions.emplace_back(Instruction(ISA(ISA::CMP_I + bias * 2)));
-      this->_instructions.emplace_back(Instruction(ISA::SET_GT));
+      this->_cur_block.emplace_back(Instruction(ISA(ISA::CMP_I + bias * 2)));
+      this->_cur_block.emplace_back(Instruction(ISA::SET_GT));
       break;
     case TokenType::LESS_EQUAL:
-      this->_instructions.emplace_back(Instruction(ISA(ISA::CMP_I + bias * 2)));
-      this->_instructions.emplace_back(Instruction(ISA::SET_GT));
-      this->_instructions.emplace_back(Instruction(ISA::NOT));
+      this->_cur_block.emplace_back(Instruction(ISA(ISA::CMP_I + bias * 2)));
+      this->_cur_block.emplace_back(Instruction(ISA::SET_GT));
+      this->_cur_block.emplace_back(Instruction(ISA::NOT));
       break;
     case TokenType::GREATER_EQUAL:
-      this->_instructions.emplace_back(Instruction(ISA(ISA::CMP_I + bias * 2)));
-      this->_instructions.emplace_back(Instruction(ISA::SET_LT));
-      this->_instructions.emplace_back(Instruction(ISA::NOT));
+      this->_cur_block.emplace_back(Instruction(ISA(ISA::CMP_I + bias * 2)));
+      this->_cur_block.emplace_back(Instruction(ISA::SET_LT));
+      this->_cur_block.emplace_back(Instruction(ISA::NOT));
       break;
     default:
       break;
@@ -55,27 +55,27 @@ void Generator::generateOperation(TokenType type, TokenType op) {
 
 void Generator::generateNega(TokenType type) {
   int bias = type - TokenType::INT;
-  this->_instructions.emplace_back(Instruction(ISA(ISA::NEG_I + bias)));
+  this->_cur_block.emplace_back(Instruction(ISA(ISA::NEG_I + bias)));
 }
 
 void Generator::generateAs(TokenType type, TokenType as) {
   if (type == as) return;
   if (as == TokenType::INT)
-    this->_instructions.emplace_back(Instruction(ISA::FTOI));
+    this->_cur_block.emplace_back(Instruction(ISA::FTOI));
   else
-    this->_instructions.emplace_back(Instruction(ISA::ITOF));
+    this->_cur_block.emplace_back(Instruction(ISA::ITOF));
 }
 
 void Generator::generateGetVariable(int id, VariableType type) {
   switch (type) {
     case VariableType::LOCAL:
-      this->_instructions.emplace_back(Instruction(ISA::LOCA, id));
+      this->_cur_block.emplace_back(Instruction(ISA::LOCA, id));
       break;
     case VariableType::GLOBAL:
-      this->_instructions.emplace_back(Instruction(ISA::GLOBA, id));
+      this->_cur_block.emplace_back(Instruction(ISA::GLOBA, id));
       break;
     case VariableType::PARAM:
-      this->_instructions.emplace_back(Instruction(ISA::ARGA, id));
+      this->_cur_block.emplace_back(Instruction(ISA::ARGA, id));
       break;
   }
 }
@@ -83,62 +83,59 @@ void Generator::generateGetVariable(int id, VariableType type) {
 void Generator::generateLoadVariable(int id, VariableType type) {
   switch (type) {
     case VariableType::LOCAL:
-      this->_instructions.emplace_back(Instruction(ISA::LOCA, id));
+      this->_cur_block.emplace_back(Instruction(ISA::LOCA, id));
       break;
     case VariableType::GLOBAL:
-      this->_instructions.emplace_back(Instruction(ISA::GLOBA, id));
+      this->_cur_block.emplace_back(Instruction(ISA::GLOBA, id));
       break;
     case VariableType::PARAM:
-      this->_instructions.emplace_back(Instruction(ISA::ARGA, id));
+      this->_cur_block.emplace_back(Instruction(ISA::ARGA, id));
       break;
   }
-  this->_instructions.emplace_back(Instruction(ISA::LOAD_64));
+  this->_cur_block.emplace_back(Instruction(ISA::LOAD_64));
 }
 
-void Generator::generateDouble(double val) {
-  int64_t *p = reinterpret_cast<int64_t *>(&val);
-  this->_instructions.emplace_back(Instruction(ISA::PUSH, *p));
+void Generator::generateLiteralValue(int64_t *val) {
+  this->_cur_block.emplace_back(Instruction(ISA::PUSH, *val));
 }
-void Generator::generateInt64(int64_t val) {
-  this->_instructions.emplace_back(Instruction(ISA::PUSH, val));
-}
+
 
 void Generator::generateStackAlloc(int64_t size) {
-  this->_instructions.emplace_back(Instruction(ISA::SHRL, size));
+  this->_cur_block.emplace_back(Instruction(ISA::STACKALLOC, size));
 }
 void Generator::generateCallFunction(int64_t id) {
-  this->_instructions.emplace_back(Instruction(ISA::CALL, id));
+  this->_cur_block.emplace_back(Instruction(ISA::CALL, id));
 }
 
 void Generator::generateStore() {
-  this->_instructions.emplace_back(Instruction(ISA::STORE_64));
+  this->_cur_block.emplace_back(Instruction(ISA::STORE_64));
 }
 
 void Generator::generateRet() {
-  this->_instructions.emplace_back(Instruction(ISA::RET));
+  this->_cur_block.emplace_back(Instruction(ISA::RET));
 }
 
 void Generator::generateBr(int64_t num) {
-  this->_instructions.emplace_back(Instruction(ISA::BR, num));
+  this->_cur_block.emplace_back(Instruction(ISA::BR, num));
 }
 void Generator::generateBrTrue(int64_t num) {
-  this->_instructions.emplace_back(Instruction(ISA::BR_TRUE, num));
+  this->_cur_block.emplace_back(Instruction(ISA::BR_TRUE, num));
 }
 
 void Generator::generateBreak() {
-  this->_instructions.emplace_back(Instruction(ISA::BREAK_FAKE));
+  this->_cur_block.emplace_back(Instruction(ISA::BREAK_FAKE));
 }
 
 void Generator::generateContinue() {
-  this->_instructions.emplace_back(Instruction(ISA::CONTINUE_FAKE));
+  this->_cur_block.emplace_back(Instruction(ISA::CONTINUE_FAKE));
 }
 
 void Generator::fixBreakAndContinue() {
   int pos = 0;
-  for (auto &ins : this->_instructions) {
+  for (auto &ins : this->_cur_block) {
     if (ins.GetISA() == ISA::BREAK_FAKE) {
       ins.SetISA(ISA::BR);
-      ins.SetX(this->_instructions.size() - pos - 1);
+      ins.SetX(this->_cur_block.size() - pos - 1);
     }
     else if (ins.GetISA() == ISA::CONTINUE_FAKE) {
       ins.SetISA(ISA::BR);
@@ -263,7 +260,7 @@ std::string ISA2Str(ISA isa) {
 }
 
 void Generator::show() {
-  for (auto &ins : this->_instructions) {
+  for (auto &ins : this->_cur_block) {
     std::cout << ISA2Str(ins.GetISA()) << " " << ins.GetX() << std::endl;
   }
 }

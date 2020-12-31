@@ -46,14 +46,15 @@ void Generator::generateStat(StatNodePtr stat) {
       break;
     }
     default: {
-      printf("error!");
+      printf("error!\n");
       break;
     }
   }
   return;
 }
 
-void Generator::generateExprStat(ExprStatNodePtr block_node) {
+void Generator::generateExprStat(ExprStatNodePtr expr_node) {
+  generateExpr(expr_node->_expr);
   return;
 }
 
@@ -65,14 +66,39 @@ void Generator::generateBlockStat(BlockStatNodePtr block_node) {
 
 void Generator::generateDeclStat(DeclStatNodePtr decl) {
   if (decl->_value == nullptr) return;
-  generateLoadVariable(decl->_id, VariableType::PARAM);
+  generateGetVariable(decl->_id, decl->_vscope);
   generateExpr(decl->_value);
   generateStore();
 }
-void Generator::generateIfStat(IfStatNodePtr) {}
-void Generator::generateWhileStat(WhileStatNodePtr) {}
-void Generator::generateBreakStat(BreakStatNodePtr) {}
-void Generator::generateContinueStat(ContinueStatNodePtr) {}
-void Generator::generateReturnStat(ReturnStatNodePtr) {}
+
+void Generator::generateIfStat(IfStatNodePtr if_node) {
+  generateExpr(if_node->_expr);
+  generateBlockStat(if_node->_if_block);
+
+  generateStat(if_node->_else_block);
+}
+
+void Generator::generateWhileStat(WhileStatNodePtr while_node) {
+  generateExpr(while_node->_expr);
+  generateBlockStat(while_node->_block);
+}
+
+void Generator::generateBreakStat(BreakStatNodePtr) { generateBreak(); }
+
+void Generator::generateContinueStat(ContinueStatNodePtr) {
+  generateContinue();
+}
+
+void Generator::generateReturnStat(ReturnStatNodePtr return_node) {
+  if (return_node->_expr != nullptr) {
+    generateGetVariable(return_node->_id, VariableType::PARAM);
+    generateExpr(return_node->_expr);
+    generateStore();
+  }
+
+  generateRet();
+}
+
 void Generator::generateWhileStat(BlockStatNodePtr) {}
+
 }  // namespace miniplc0

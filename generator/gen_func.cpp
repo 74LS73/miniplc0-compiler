@@ -3,15 +3,16 @@
 
 namespace miniplc0 {
 
-
 void Generator::generateFunction(FuncNodePtr func_node) {
-
+  printf("==== begin %s! ====\n", func_node->_name.c_str());
+  _cur_func = func_node;
   auto block = func_node->_body;
   generateBlockStat(block);
-
+  _cur_func = nullptr;
 }
 
-// vector<VariableItem>& Generator::generateFunctionParam(FuncNodePtr func_node) {
+// vector<VariableItem>& Generator::generateFunctionParam(FuncNodePtr func_node)
+// {
 //   auto params = vector<VariableItem>();
 //   if (func_node->_return_type != TokenType::VOID) {
 //     auto param = VariableItem();
@@ -25,6 +26,5 @@ void Generator::generateFunction(FuncNodePtr func_node) {
 //   }
 //   return params;
 // }
-
 
 }  // namespace miniplc0

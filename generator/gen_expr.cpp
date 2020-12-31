@@ -10,6 +10,16 @@ void Generator::generateExpr(ExprNodePtr expr) {
       generateAssignExpr(node);
       break;
     }
+    case NodeType::ItemExprNode: {
+      auto node = std::dynamic_pointer_cast<ItemExprNode>(expr);
+      generateItemExpr(node);
+      break;
+    }
+    case NodeType::IdentExprNode: {
+      auto node = std::dynamic_pointer_cast<IdentExprNode>(expr);
+      generateIdentExpr(node);
+      break;
+    }
     case NodeType::UnaryExprNode: {
       auto node = std::dynamic_pointer_cast<UnaryExprNode>(expr);
       generateUnaryExpr(node);
@@ -26,7 +36,8 @@ void Generator::generateExpr(ExprNodePtr expr) {
       break;
     }
     default: {
-      printf("error!");
+      printf("ntype is %d !", expr->_ntype);
+      printf("error!\n");
       break;
     }
   }
@@ -34,27 +45,45 @@ void Generator::generateExpr(ExprNodePtr expr) {
 }
 
 void Generator::generateAssignExpr(AssignExprNodePtr assign) {
-  generateLoadVariable(assign->_lhs->_id, VariableType::PARAM);
+  generateGetVariable(assign->_lhs->_id, assign->_lhs->_vscope);
   generateExpr(assign->_rhs);
   generateStore();
 }
 
 void Generator::generateUnaryExpr(UnaryExprNodePtr unary) {
-  generateExpr(unary->_ident);
+  generateExpr(unary->_item);
   if (unary->_nega) {
-    generateNega(unary->_ident->_type);
+    generateNega(unary->_item->_type);
   }
-  if (unary->_ident->_type != unary->_type) {
-    generateAs(unary->_ident->_type, unary->_type);
+  if (unary->_item->_type != unary->_type) {
+    generateAs(unary->_item->_type, unary->_type);
   }
 }
 
-void Generator::generateOpExpr(OpExprNodePtr) {
-
+void Generator::generateOpExpr(OpExprNodePtr op_node) {
+  // if (op_node->_lhs == nullptr) {
+  //   generateUnaryExpr(op_node);
+  // }
+  generateExpr(op_node->_lhs);
+  if (op_node->_rhs != nullptr) {
+    generateExpr(op_node->_rhs);
+    generateOperation(op_node->_type, op_node->_operator);
+  }
 }
 
-void Generator::generateCallExpr(CallExprNodePtr call) {
-  generateCallFunction(call->_id);
+void Generator::generateCallExpr(CallExprNodePtr call_node) {
+  generateStackAlloc(1);
+  for (auto &expr : call_node->_params) {
+    generateExpr(expr);
+  }
+  generateCallFunction(call_node->_id);
 }
 
+void Generator::generateItemExpr(ItemExprNodePtr item_node) {
+  generateLiteralValue(item_node->_value);
+}
+
+void Generator::generateIdentExpr(IdentExprNodePtr ident_node) {
+  generateLoadVariable(ident_node->_id, ident_node->_vscope);
+}
 }  // namespace miniplc0

@@ -8,7 +8,6 @@
 #include "instruction/instruction.h"
 #include "symbol/type.h"
 
-
 namespace miniplc0 {
 
 using std::vector;
@@ -20,14 +19,16 @@ class Generator final {
   int64_t size() { return _instructions.size(); }
 
  public:
+  void generateProgram(ProgNodePtr);
+
+ private:
   void generateOperation(TokenType type, TokenType op);
   void show();
   void generateNega(TokenType type);
   void generateAs(TokenType type, TokenType as);
   void generateLoadVariable(int id, VariableType vt);
   void generateGetVariable(int id, VariableType type);
-  void generateDouble(double);
-  void generateInt64(int64_t);
+  void generateLiteralValue(int64_t *);
   void generateStackAlloc(int64_t size);
   void generateStore();
   void generateRet();
@@ -39,12 +40,11 @@ class Generator final {
   void fixBreakAndContinue();
 
  private:
-  
   std::vector<Instruction> _instructions;
+  FuncNodePtr _cur_func;
+  std::vector<Instruction> _cur_block;
 
  private:
-  void generateProgram(ProgNodePtr);
-
   void generateFunction(FuncNodePtr);
   // vector<VariableItem> &generateFunctionParam(FuncNodePtr);
 
@@ -59,13 +59,13 @@ class Generator final {
   void generateReturnStat(ReturnStatNodePtr);
   void generateWhileStat(BlockStatNodePtr);
 
-
   void generateExpr(ExprNodePtr);
   void generateAssignExpr(AssignExprNodePtr);
   void generateUnaryExpr(UnaryExprNodePtr);
   void generateOpExpr(OpExprNodePtr);
-
   void generateCallExpr(CallExprNodePtr);
+  void generateItemExpr(ItemExprNodePtr);
+  void generateIdentExpr(IdentExprNodePtr);
 };
 
 }  // namespace miniplc0

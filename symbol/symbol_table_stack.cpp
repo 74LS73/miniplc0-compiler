@@ -40,15 +40,15 @@ bool SymbolTableStack::isGlobalVariableDeclared(const string &token_name) {
   return _symbol_table_stack[_global_scope_level].hasVariable(token_name);
 }
 
-void SymbolTableStack::declareVariable(DeclStatNodePtr item) {
+int64_t SymbolTableStack::declareVariable(DeclStatNodePtr item) {
   getCurrentTable().addVariable(item);
 }
 
-void SymbolTableStack::declareGlobalVariable(DeclStatNodePtr item) {
+int64_t SymbolTableStack::declareGlobalVariable(DeclStatNodePtr item) {
   getCurrentTable().addVariable(item);
 }
 
-void SymbolTableStack::declareFunction(FuncNodePtr item) {
+int64_t SymbolTableStack::declareFunction(FuncNodePtr item) {
   _symbol_table_stack[0].addFunction(item);
 }
 

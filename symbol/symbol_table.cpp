@@ -4,26 +4,28 @@ namespace miniplc0 {
 
 template <typename T>
 void SymbolTable::_add(std::map<std::string, T> &mp, string &name, T item,
-                       int &_nextTokenIndex) {
+                       int64_t &_nextTokenIndex) {
   mp[name] = item;
   item->_id = _nextTokenIndex;
   _nextTokenIndex++;
 }
 
-void SymbolTable::addVariable(DeclStatNodePtr decl) {
+int64_t SymbolTable::addVariable(DeclStatNodePtr decl) {
   std::string name = decl->_name;
   if (hasFunction(name)) {
     throw ErrorCode::ErrDuplicateDeclaration;
   }
   _add(_vars, name, decl, _nextFunctionIndex);
+  return decl->_id;
 }
 
-void SymbolTable::addFunction(FuncNodePtr func) {
+int64_t SymbolTable::addFunction(FuncNodePtr func) {
   std::string name = func->_name;
   if (hasFunction(name)) {
     throw ErrorCode::ErrDuplicateDeclaration;
   }
   _add(_function, name, func, _nextFunctionIndex);
+  return func->_id;
 }
 
 bool SymbolTable::hasFunction(const std::string &s) {

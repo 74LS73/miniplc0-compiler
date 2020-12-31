@@ -5,8 +5,6 @@
 #include <vector>
 
 #include "ast/ast.h"
-#include "generator/generator.h"
-#include "instruction/instruction.h"
 #include "tokenizer/token.h"
 #include "type.h"
 
@@ -19,18 +17,18 @@ class SymbolTable final {
   SymbolTable() : _nextFunctionIndex(0), _nextVariableIndex(0){};
 
  private:
-  int32_t _nextFunctionIndex;
-  int32_t _nextVariableIndex;
+  int64_t _nextFunctionIndex;
+  int64_t _nextVariableIndex;
   std::map<std::string, DeclStatNodePtr> _vars;
   std::map<std::string, FuncNodePtr> _function;
 
   // helper function
   template <typename T>
-  void _add(std::map<string, T> &, string &, T, int &);
+  void _add(std::map<string, T> &, string &, T, int64_t &);
 
  public:
-  void addVariable(DeclStatNodePtr);
-  void addFunction(FuncNodePtr);
+  int64_t addVariable(DeclStatNodePtr);
+  int64_t addFunction(FuncNodePtr);
 
   bool hasFunction(const string &);
   bool hasVariable(const string &);

@@ -19,7 +19,19 @@ class ExprNode : public Node {
   ExprNode() : _type(TokenType::VOID) { _ntype = NodeType::ExprNode; }
 };
 
-struct AssignExprNode : public ExprNode {
+class IdentExprNode : public ExprNode {
+ public:
+  std::string _name;
+  bool _const;
+  int64_t _id;
+  VariableType _vscope;
+  IdentExprNode() : _vscope(VariableType::LOCAL) {
+    _ntype = NodeType::IdentExprNode;
+  }
+};
+
+class AssignExprNode : public ExprNode {
+ public:
   shared_ptr<IdentExprNode> _lhs;
   shared_ptr<ExprNode> _rhs;
   AssignExprNode() { _ntype = NodeType::AssignExprNode; }
@@ -29,14 +41,6 @@ class ItemExprNode : public ExprNode {
  public:
   int64_t *_value;
   ItemExprNode() { _ntype = NodeType::ItemExprNode; }
-};
-
-class IdentExprNode : public ExprNode {
- public:
-  std::string _name;
-  bool _const;
-  int64_t _id;
-  IdentExprNode() { _ntype = NodeType::IdentExprNode; }
 };
 
 class CallExprNode : public ExprNode {
@@ -50,7 +54,7 @@ class CallExprNode : public ExprNode {
 class UnaryExprNode : public ExprNode {
  public:
   bool _nega;
-  shared_ptr<ExprNode> _ident;
+  shared_ptr<ExprNode> _item;
   UnaryExprNode() : _nega(false) { _ntype = NodeType::UnaryExprNode; }
 };
 

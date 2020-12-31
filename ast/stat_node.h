@@ -37,6 +37,7 @@ class DeclStatNode : public StatNode {
   std::string _name;
   shared_ptr<ExprNode> _value;
   TokenType _type;
+  VariableType _vscope;
   int64_t _id;
   DeclStatNode() { _ntype = NodeType::DeclStatNode; }
 };
@@ -44,7 +45,7 @@ class DeclStatNode : public StatNode {
 class IfStatNode : public StatNode {
  public:
   shared_ptr<ExprNode> _expr;
-  shared_ptr<StatNode> _if_block;
+  shared_ptr<BlockStatNode> _if_block;
   shared_ptr<StatNode> _else_block;
   IfStatNode() { _ntype = NodeType::IfStatNode; }
 };
@@ -52,7 +53,7 @@ class IfStatNode : public StatNode {
 class WhileStatNode : public StatNode {
  public:
   shared_ptr<ExprNode> _expr;
-  shared_ptr<StatNode> _block;
+  shared_ptr<BlockStatNode> _block;
   WhileStatNode() { _ntype = NodeType::WhileStatNode; }
 };
 
@@ -67,6 +68,7 @@ class ContinueStatNode : public StatNode {
 class ReturnStatNode : public StatNode {
  public:
   shared_ptr<ExprNode> _expr;
+  int64_t _id;
   ReturnStatNode() { _ntype = NodeType::ReturnStatNode; }
 };
 

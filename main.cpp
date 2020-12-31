@@ -5,6 +5,7 @@
 #include "argparse/argparse.hpp"
 #include "fmt/core.h"
 #include "fmts.hpp"
+#include "generator/generator.h"
 #include "tokenizer/tokenizer.h"
 
 std::vector<miniplc0::Token> _tokenize(std::istream &input) {
@@ -29,6 +30,9 @@ void Analyse(std::istream &input, std::ostream &output) {
   miniplc0::Analyser analyser(tks);
   try {
     auto p = analyser.Analyse();
+    printf("==== begin Generator! ====\n");
+    auto generator = miniplc0::Generator();
+    generator.generateProgram(p);
     // auto v = p.first;
     // for (auto &it : v) output << fmt::format("{}\n", it);
   } catch (miniplc0::CompilationError &error) {

@@ -23,7 +23,7 @@ ProgNodePtr Analyser::analyseProgram() {
       case TokenType::LET:
       case TokenType::CONST: {
         unreadToken();
-        auto var = analyseDeclStatement();
+        auto var = analyseDeclStatement(VariableType::GLOBAL);
         node->_vars.emplace_back(var);
         break;
       }
@@ -38,7 +38,7 @@ ProgNodePtr Analyser::analyseProgram() {
   auto call_expr =  std::make_shared<CallExprNode>();
   call_expr->_name = "main";
   call_main->_expr =call_expr;
-  node->_funcs.emplace_back(_start);
+  // node->_funcs.emplace_back(_start);
   return node;
 }
 }  // namespace miniplc0

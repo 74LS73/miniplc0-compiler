@@ -142,7 +142,7 @@ ExprNodePtr Analyser::analyserUnaryExpression() {
 ExprNodePtr Analyser::analyseOperatorExpression(OpExprNodePtr _expr) {
   optional<Token> next;
 
-  auto lhs = std::dynamic_pointer_cast<OpExprNode>(_expr);
+  auto lhs = _expr;
   while (true) {
     next = nextToken();
     if (!next.has_value() || !next.value().isTokenABinaryOperator()) {
@@ -150,9 +150,11 @@ ExprNodePtr Analyser::analyseOperatorExpression(OpExprNodePtr _expr) {
       return lhs;
     }
     auto current_op = next.value();
-    if (lhs->_operator != current_op.GetType()) {
-      throw ErrorCode::ErrCompiler;
-    }
+    // if (lhs->_operator != current_op.GetType()) {
+    //   std::cout << lhs->_operator << std::endl;
+    //   std::cout << current_op.GetType() << std::endl;
+    //   throw ErrorCode::ErrCompiler;
+    // }
 
     auto rhs = analyserUnaryExpression();
 
@@ -173,18 +175,17 @@ ExprNodePtr Analyser::analyseOperatorExpression(OpExprNodePtr _expr) {
         return node;
       } else if (next.value() < current_op) {
         // * 遇上 + ，跳出，结合lhr和rhs
-        current_op = next.value();
         unreadToken();
         break;
+      } else {
+        // + 遇上 * ，递归，rhs变lhs
+        auto new_op_expr = std::make_shared<OpExprNode>();
+        new_op_expr->_lhs = rhs;
+        new_op_expr->_type = rhs->_type;
+        new_op_expr->_operator = next->GetType();
+        unreadToken();
+        rhs = analyseOperatorExpression(new_op_expr);
       }
-
-      // + 遇上 * ，递归，rhs变lhs
-      auto new_op_expr = std::make_shared<OpExprNode>();
-      new_op_expr->_lhs = rhs;
-      new_op_expr->_type = rhs->_type;
-      new_op_expr->_operator = next->GetType();
-      unreadToken();
-      rhs = analyseOperatorExpression(new_op_expr);
     }
     // 结合lhs和rhs
     auto tmp = std::make_shared<OpExprNode>();
@@ -322,6 +323,7 @@ IdentExprNodePtr Analyser::analyseIdentExpression() {
   // lhs->_type = var.value().type;
   node->_type = var->_type;
   node->_id = var->_id;
+  node->_vscope = var->_vscope;
   return node;
 }
 

@@ -4,7 +4,7 @@
 
 namespace miniplc0 {
 
-NodePtr Analyser::Analyse() {
+ProgNodePtr Analyser::Analyse() {
   try {
     auto node = analyseProgram();
     return node;

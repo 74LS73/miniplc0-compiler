@@ -72,7 +72,7 @@ ARROW:
 // function_param -> 'const'? IDENT ':' ty
 void Analyser::analyseFunctionParameter(FuncNodePtr &func) {
   auto param = std::make_shared<DeclStatNode>();
-
+  param->_vscope = VariableType::PARAM;
   auto next = nextToken();
   param->_const = false;
   if (next.has_value() && next.value().GetType() == TokenType::CONST) {

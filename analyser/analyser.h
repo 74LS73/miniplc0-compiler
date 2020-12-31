@@ -42,7 +42,7 @@ class Analyser final {
   Analyser &operator=(Analyser) = delete;
 
   // 唯一接口
-  NodePtr Analyse();
+  ProgNodePtr Analyse();
 
  private:
   // 所有的递归子程序
@@ -56,7 +56,7 @@ class Analyser final {
   // <一元运算符表达式>
   ExprNodePtr analyserUnaryExpression();
   // <运算符表达式>
-  ExprNodePtr analyseOperatorExpression(ExprNodePtr);
+  ExprNodePtr analyseOperatorExpression(OpExprNodePtr);
   // <赋值表达式>assign_expr -> l_expr '=' expr
   ExprNodePtr analyseAssignExpression();
   // <函数调用表达式>
@@ -74,7 +74,7 @@ class Analyser final {
   // <表达式语句>
   StatNodePtr analyseExprStatement();
   // <声明语句>
-  StatNodePtr analyseDeclStatement();
+  StatNodePtr analyseDeclStatement(VariableType);
   // <if 语句>
   StatNodePtr analyseIfStatement();
   // <while 语句>

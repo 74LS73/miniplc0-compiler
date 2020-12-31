@@ -41,7 +41,7 @@ StatNodePtr Analyser::analyseStatement() {
     case TokenType::LET:
     case TokenType::CONST:
       unreadToken();
-      return analyseDeclStatement();
+      return analyseDeclStatement(VariableType::LOCAL);
     case TokenType::SEMICOLON:
     default:
       unreadToken();
@@ -67,8 +67,9 @@ StatNodePtr Analyser::analyseExprStatement() {
 // let_decl_stmt -> 'let' IDENT ':' ty ('=' expr)? ';'
 // const_decl_stmt -> 'const' IDENT ':' ty '=' expr ';'
 // decl_stmt -> let_decl_stmt | const_decl_stmt
-StatNodePtr Analyser::analyseDeclStatement() {
+StatNodePtr Analyser::analyseDeclStatement(VariableType vscope) {
   auto node = std::make_shared<DeclStatNode>();
+  node->_vscope = vscope;
   auto next = nextToken();
 
   if (!next.has_value()) {
@@ -235,6 +236,14 @@ StatNodePtr Analyser::analyseReturnStatement() {
     throw AnalyserError({_current_pos, ErrorCode::ErrNeedSemicolon});
   }
 
+  auto return_decl = std::make_shared<DeclStatNode>();
+  return_decl->_name = "#return";
+  return_decl->_vscope = VariableType::PARAM;
+  if (_symbol_table_stack.isLocalVariableDeclared("#return")) {
+    node->_id = _symbol_table_stack.getVariableByName("#return")->_id;
+  } else {
+    node->_id = _symbol_table_stack.declareVariable(return_decl);
+  }
   return node;
 }
 

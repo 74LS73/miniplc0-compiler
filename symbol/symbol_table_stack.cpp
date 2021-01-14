@@ -42,14 +42,17 @@ bool SymbolTableStack::isGlobalVariableDeclared(const string &token_name) {
 
 int64_t SymbolTableStack::declareVariable(DeclStatNodePtr item) {
   getCurrentTable().addVariable(item);
+  return item->_id;
 }
 
 int64_t SymbolTableStack::declareGlobalVariable(DeclStatNodePtr item) {
   getCurrentTable().addVariable(item);
+  return item->_id;
 }
 
 int64_t SymbolTableStack::declareFunction(FuncNodePtr item) {
   _symbol_table_stack[0].addFunction(item);
+  return item->_id;
 }
 
 DeclStatNodePtr SymbolTableStack::getVariableByName(string s) {

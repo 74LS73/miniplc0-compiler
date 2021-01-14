@@ -1,5 +1,5 @@
 [jobs.c0]
 image = {source = "dockerfile", path = ".", tag = "c0-cpp"}
 run = [
-  "./miniplc0 -l $input -o $output",
+  "./miniplc0 -l $input -o $asm",
 ]

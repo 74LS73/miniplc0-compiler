@@ -34,12 +34,17 @@ void Analyse(std::istream &input, std::ostream &output) {
     printf("==== begin Generator! ====\n");
     auto generator = miniplc0::Generator();
     generator.generateProgram(p);
-    // auto v = p.first;
-    // for (auto &it : v) output << fmt::format("{}\n", it);
+
+    for (auto &isa : generator.instructions) { 
+      char *val = isa.ISA2Hex();
+      printf("%d %d\n", isa.GetLen(), isa.GetISA());
+      output.write(val, isa.GetLen());
+    }
+    
   } catch (miniplc0::CompilationError &error) {
-    fprintf(
-        stderr, "Line: %3lu Column: %3lu Syntactic analysis error: %s\n",
-        error.GetPos().first, error.GetPos().second, error.GetString().c_str());
+    fprintf(stderr, "Line: %3lu Column: %3lu Syntactic analysis error: %s\n",
+            error.GetPos().first, error.GetPos().second,
+            error.GetString().c_str());
     exit(0);
   }
 
@@ -89,7 +94,7 @@ int main(int argc, char **argv) {
   } else
     input = &std::cin;
   if (output_file != "-") {
-    outf.open(output_file, std::ios::out | std::ios::trunc);
+    outf.open(output_file, std::ios::out | std::ios::trunc | std::ios::binary);
     if (!outf) {
       fprintf(stderr, "Fail to open %s for writing.\n", output_file.c_str());
       exit(2);

@@ -41,6 +41,7 @@ set(lib_src
 	analyser/utils.h
 	analyser/utils.cpp
 	instruction/instruction.h
+	instruction/instruction.cpp
 	generator/generator.h
 	generator/generator.cpp
 	generator/gen_prog.cpp

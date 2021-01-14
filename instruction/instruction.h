@@ -71,19 +71,20 @@ enum ISA {
 
 class Instruction final {
  private:
-  using int64_t = std::int64_t;
+  using uint64_t = std::uint64_t;
 
  public:
   friend void swap(Instruction &lhs, Instruction &rhs);
 
  public:
-  Instruction(ISA opr, int64_t x) : _opr(opr), _x(x) {}
-  Instruction(ISA opr) : _opr(opr), _x(0) {}
+  Instruction(ISA opr, uint64_t x) : _opr(opr), _x(x), _len(9) {}
+  Instruction(ISA opr) : _opr(opr), _x(0), _len(1) {}
 
-  Instruction() : Instruction(ISA::NOP, 0) {}
+  Instruction() : Instruction(ISA::NOP) {}
   Instruction(const Instruction &i) {
     _opr = i._opr;
     _x = i._x;
+    _len = i._len;
   }
   Instruction(Instruction &&i) : Instruction() { swap(*this, i); }
   Instruction &operator=(Instruction i) {
@@ -95,18 +96,23 @@ class Instruction final {
   }
 
   ISA GetISA() const { return _opr; }
-  int64_t GetX() const { return _x; }
+  uint64_t GetX() const { return _x; }
   void SetISA(ISA isa) { _opr = isa; }
-  void SetX(int64_t x) { _x = x; }
+  void SetX(uint64_t x) { _x = x; }
+
+  char *ISA2Hex();
+  int64_t GetLen() { return _len; }
 
  private:
   ISA _opr;
-  int64_t _x;
+  uint64_t _x;
+  int64_t _len;
 };
 
 inline void swap(Instruction &lhs, Instruction &rhs) {
   using std::swap;
   swap(lhs._opr, rhs._opr);
   swap(lhs._x, rhs._x);
+  swap(lhs._len, rhs._len);
 }
 }  // namespace miniplc0

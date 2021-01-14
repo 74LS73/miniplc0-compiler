@@ -2,51 +2,52 @@
 
 namespace miniplc0 {
 
-void Generator::operator+=(Generator &rhs) {
-  for (auto &ins : rhs._cur_block) {
-    this->_cur_block.emplace_back(ins);
-  }
-}
+// void Generator::operator+=(Generator &rhs) {
+//   for (auto &ins : rhs._cur_block) {
+//     _cur_block.emplace_back(ins);
+//   }
+// }
 
 void Generator::generateOperation(TokenType type, TokenType op) {
+  auto &_cur_block = _code_stack.top();
   int bias = type - TokenType::INT;
   switch (op) {
     case TokenType::MULT_SIGN:
-      this->_cur_block.emplace_back(Instruction(ISA(ISA::MUL_I + bias * 4)));
+      _cur_block.emplace_back(Instruction(ISA(ISA::MUL_I + bias * 4)));
       break;
     case TokenType::DIV_SIGN:
-      this->_cur_block.emplace_back(Instruction(ISA(ISA::DIV_I + bias * 4)));
+      _cur_block.emplace_back(Instruction(ISA(ISA::DIV_I + bias * 4)));
       break;
     case TokenType::PLUS_SIGN:
-      this->_cur_block.emplace_back(Instruction(ISA(ISA::ADD_I + bias * 4)));
+      _cur_block.emplace_back(Instruction(ISA(ISA::ADD_I + bias * 4)));
       break;
     case TokenType::MINUS_SIGN:
-      this->_cur_block.emplace_back(Instruction(ISA(ISA::SUB_I + bias * 4)));
+      _cur_block.emplace_back(Instruction(ISA(ISA::SUB_I + bias * 4)));
       break;
     case TokenType::EQUAL:
-      this->_cur_block.emplace_back(Instruction(ISA(ISA::CMP_I + bias * 2)));
-      this->_cur_block.emplace_back(Instruction(ISA::NOT));
+      _cur_block.emplace_back(Instruction(ISA(ISA::CMP_I + bias * 2)));
+      _cur_block.emplace_back(Instruction(ISA::NOT));
       break;
     case TokenType::NO_EQUAL:
-      this->_cur_block.emplace_back(Instruction(ISA(ISA::CMP_I + bias * 2)));
+      _cur_block.emplace_back(Instruction(ISA(ISA::CMP_I + bias * 2)));
       break;
     case TokenType::LESS_SIGN:
-      this->_cur_block.emplace_back(Instruction(ISA(ISA::CMP_I + bias * 2)));
-      this->_cur_block.emplace_back(Instruction(ISA::SET_LT));
+      _cur_block.emplace_back(Instruction(ISA(ISA::CMP_I + bias * 2)));
+      _cur_block.emplace_back(Instruction(ISA::SET_LT));
       break;
     case TokenType::GREATER_SIGN:
-      this->_cur_block.emplace_back(Instruction(ISA(ISA::CMP_I + bias * 2)));
-      this->_cur_block.emplace_back(Instruction(ISA::SET_GT));
+      _cur_block.emplace_back(Instruction(ISA(ISA::CMP_I + bias * 2)));
+      _cur_block.emplace_back(Instruction(ISA::SET_GT));
       break;
     case TokenType::LESS_EQUAL:
-      this->_cur_block.emplace_back(Instruction(ISA(ISA::CMP_I + bias * 2)));
-      this->_cur_block.emplace_back(Instruction(ISA::SET_GT));
-      this->_cur_block.emplace_back(Instruction(ISA::NOT));
+      _cur_block.emplace_back(Instruction(ISA(ISA::CMP_I + bias * 2)));
+      _cur_block.emplace_back(Instruction(ISA::SET_GT));
+      _cur_block.emplace_back(Instruction(ISA::NOT));
       break;
     case TokenType::GREATER_EQUAL:
-      this->_cur_block.emplace_back(Instruction(ISA(ISA::CMP_I + bias * 2)));
-      this->_cur_block.emplace_back(Instruction(ISA::SET_LT));
-      this->_cur_block.emplace_back(Instruction(ISA::NOT));
+      _cur_block.emplace_back(Instruction(ISA(ISA::CMP_I + bias * 2)));
+      _cur_block.emplace_back(Instruction(ISA::SET_LT));
+      _cur_block.emplace_back(Instruction(ISA::NOT));
       break;
     default:
       break;
@@ -54,88 +55,102 @@ void Generator::generateOperation(TokenType type, TokenType op) {
 }
 
 void Generator::generateNega(TokenType type) {
+  auto &_cur_block = _code_stack.top();
   int bias = type - TokenType::INT;
-  this->_cur_block.emplace_back(Instruction(ISA(ISA::NEG_I + bias)));
+  _cur_block.emplace_back(Instruction(ISA(ISA::NEG_I + bias)));
 }
 
 void Generator::generateAs(TokenType type, TokenType as) {
+  auto &_cur_block = _code_stack.top();
   if (type == as) return;
   if (as == TokenType::INT)
-    this->_cur_block.emplace_back(Instruction(ISA::FTOI));
+    _cur_block.emplace_back(Instruction(ISA::FTOI));
   else
-    this->_cur_block.emplace_back(Instruction(ISA::ITOF));
+    _cur_block.emplace_back(Instruction(ISA::ITOF));
 }
 
 void Generator::generateGetVariable(int id, VariableType type) {
+  auto &_cur_block = _code_stack.top();
   switch (type) {
     case VariableType::LOCAL:
-      this->_cur_block.emplace_back(Instruction(ISA::LOCA, id));
+      _cur_block.emplace_back(Instruction(ISA::LOCA, id));
       break;
     case VariableType::GLOBAL:
-      this->_cur_block.emplace_back(Instruction(ISA::GLOBA, id));
+      _cur_block.emplace_back(Instruction(ISA::GLOBA, id));
       break;
     case VariableType::PARAM:
-      this->_cur_block.emplace_back(Instruction(ISA::ARGA, id));
+      _cur_block.emplace_back(Instruction(ISA::ARGA, id));
       break;
   }
 }
 
 void Generator::generateLoadVariable(int id, VariableType type) {
+  auto &_cur_block = _code_stack.top();
   switch (type) {
     case VariableType::LOCAL:
-      this->_cur_block.emplace_back(Instruction(ISA::LOCA, id));
+      _cur_block.emplace_back(Instruction(ISA::LOCA, id));
       break;
     case VariableType::GLOBAL:
-      this->_cur_block.emplace_back(Instruction(ISA::GLOBA, id));
+      _cur_block.emplace_back(Instruction(ISA::GLOBA, id));
       break;
     case VariableType::PARAM:
-      this->_cur_block.emplace_back(Instruction(ISA::ARGA, id));
+      _cur_block.emplace_back(Instruction(ISA::ARGA, id));
       break;
   }
-  this->_cur_block.emplace_back(Instruction(ISA::LOAD_64));
+  _cur_block.emplace_back(Instruction(ISA::LOAD_64));
 }
 
 void Generator::generateLiteralValue(int64_t *val) {
-  this->_cur_block.emplace_back(Instruction(ISA::PUSH, *val));
+  auto &_cur_block = _code_stack.top();
+  _cur_block.emplace_back(Instruction(ISA::PUSH, *val));
 }
 
 
 void Generator::generateStackAlloc(int64_t size) {
-  this->_cur_block.emplace_back(Instruction(ISA::STACKALLOC, size));
+  auto &_cur_block = _code_stack.top();
+  _cur_block.emplace_back(Instruction(ISA::STACKALLOC, size));
 }
 void Generator::generateCallFunction(int64_t id) {
-  this->_cur_block.emplace_back(Instruction(ISA::CALL, id));
+  auto &_cur_block = _code_stack.top();
+  _cur_block.emplace_back(Instruction(ISA::CALL, id));
 }
 
 void Generator::generateStore() {
-  this->_cur_block.emplace_back(Instruction(ISA::STORE_64));
+  auto &_cur_block = _code_stack.top();
+  _cur_block.emplace_back(Instruction(ISA::STORE_64));
 }
 
 void Generator::generateRet() {
-  this->_cur_block.emplace_back(Instruction(ISA::RET));
+  auto &_cur_block = _code_stack.top();
+  _cur_block.emplace_back(Instruction(ISA::RET));
 }
 
 void Generator::generateBr(int64_t num) {
-  this->_cur_block.emplace_back(Instruction(ISA::BR, num));
+  auto &_cur_block = _code_stack.top();
+  _cur_block.emplace_back(Instruction(ISA::BR, num));
 }
 void Generator::generateBrTrue(int64_t num) {
-  this->_cur_block.emplace_back(Instruction(ISA::BR_TRUE, num));
+  auto &_cur_block = _code_stack.top();
+  _cur_block.emplace_back(Instruction(ISA::BR_TRUE, num));
 }
 
 void Generator::generateBreak() {
-  this->_cur_block.emplace_back(Instruction(ISA::BREAK_FAKE));
+  auto &_cur_block = _code_stack.top();
+  _cur_block.emplace_back(Instruction(ISA::BREAK_FAKE));
 }
 
 void Generator::generateContinue() {
-  this->_cur_block.emplace_back(Instruction(ISA::CONTINUE_FAKE));
+  auto &_cur_block = _code_stack.top();
+  _cur_block.emplace_back(Instruction(ISA::CONTINUE_FAKE));
 }
 
 void Generator::fixBreakAndContinue() {
+  auto &_cur_block = _code_stack.top();
   int pos = 0;
-  for (auto &ins : this->_cur_block) {
+  for (auto &ins : _cur_block) {
     if (ins.GetISA() == ISA::BREAK_FAKE) {
       ins.SetISA(ISA::BR);
-      ins.SetX(this->_cur_block.size() - pos - 1);
+      ins.SetX(_cur_block.size() - pos - 1);
     }
     else if (ins.GetISA() == ISA::CONTINUE_FAKE) {
       ins.SetISA(ISA::BR);
@@ -260,7 +275,8 @@ std::string ISA2Str(ISA isa) {
 }
 
 void Generator::show() {
-  for (auto &ins : this->_cur_block) {
+  auto &_cur_block = _code_stack.top();
+  for (auto &ins : _cur_block) {
     std::cout << ISA2Str(ins.GetISA()) << " " << ins.GetX() << std::endl;
   }
 }

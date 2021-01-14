@@ -1,6 +1,7 @@
 #pragma once
 
 #include <optional>
+#include <stack>
 #include <utility>
 #include <vector>
 
@@ -15,8 +16,8 @@ using std::vector;
 class Generator final {
  public:
   Generator() = default;
-  void operator+=(Generator &);
-  int64_t size() { return _instructions.size(); }
+  // void operator+=(Generator &);
+  int64_t size() { return instructions.size(); }
 
  public:
   void generateProgram(ProgNodePtr);
@@ -40,9 +41,11 @@ class Generator final {
   void fixBreakAndContinue();
 
  private:
-  std::vector<Instruction> _instructions;
   FuncNodePtr _cur_func;
-  std::vector<Instruction> _cur_block;
+  std::stack<vector<Instruction>> _code_stack;
+
+ public:
+  std::vector<Instruction> instructions;
 
  private:
   void generateFunction(FuncNodePtr);

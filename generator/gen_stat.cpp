@@ -59,8 +59,17 @@ void Generator::generateExprStat(ExprStatNodePtr expr_node) {
 }
 
 void Generator::generateBlockStat(BlockStatNodePtr block_node) {
+  _code_stack.push(vector<Instruction>());
+
   for (auto &stat_node : block_node->_stats) {
     generateStat(stat_node);
+  }
+
+  auto block = _code_stack.top();
+  _code_stack.pop();
+  auto &base_block = _code_stack.top();
+  for (auto isa : block) {
+    base_block.push_back(isa);
   }
 }
 
@@ -72,15 +81,67 @@ void Generator::generateDeclStat(DeclStatNodePtr decl) {
 }
 
 void Generator::generateIfStat(IfStatNodePtr if_node) {
+  _code_stack.push(vector<Instruction>());
   generateExpr(if_node->_expr);
+
+  _code_stack.push(vector<Instruction>());
   generateBlockStat(if_node->_if_block);
-  if (if_node->_else_block != nullptr)
+  auto if_block = _code_stack.top();
+  _code_stack.pop();
+  auto &expr_block = _code_stack.top();
+  generateBrTrue(1);
+  generateBr(if_block.size() + 1);
+  for (auto &isa : if_block) {
+    expr_block.emplace_back(isa);
+  }
+
+  if (if_node->_else_block != nullptr) {
+    _code_stack.push(vector<Instruction>());
     generateStat(if_node->_else_block);
+    generateBr(0);
+
+    auto else_block = _code_stack.top();
+    _code_stack.pop();
+    generateBr(else_block.size());
+    auto &base_block = _code_stack.top();
+    for (auto &isa : else_block) {
+      base_block.emplace_back(isa);
+    }
+  }
+
+  auto block = _code_stack.top();
+  _code_stack.pop();
+  auto &base_block = _code_stack.top();
+  for (auto &isa : block) {
+    base_block.emplace_back(isa);
+  }
 }
 
 void Generator::generateWhileStat(WhileStatNodePtr while_node) {
+  _code_stack.push(vector<Instruction>());
+  generateBr(0);
   generateExpr(while_node->_expr);
+
+  _code_stack.push(vector<Instruction>());
   generateBlockStat(while_node->_block);
+
+  auto block = _code_stack.top();
+  _code_stack.pop();
+  auto &expr_block = _code_stack.top();
+  generateBrTrue(1);
+  generateBr(block.size() + 1);
+  for (auto &isa : block) {
+    expr_block.emplace_back(isa);
+  }
+
+  generateBr(-expr_block.size());
+
+  auto while_block = _code_stack.top();
+  _code_stack.pop();
+  auto &_base_block = _code_stack.top();
+  for (auto &isa : while_block) {
+    _base_block.emplace_back(isa);
+  }
 }
 
 void Generator::generateBreakStat(BreakStatNodePtr) { generateBreak(); }
@@ -98,7 +159,5 @@ void Generator::generateReturnStat(ReturnStatNodePtr return_node) {
 
   generateRet();
 }
-
-void Generator::generateWhileStat(BlockStatNodePtr) {}
 
 }  // namespace miniplc0

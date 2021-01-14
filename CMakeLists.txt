@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 add_subdirectory(3rd_party/argparse)
-add_subdirectory(3rd_party/fmt)
+# add_subdirectory(3rd_party/fmt)
 
 set(PROJECT_EXE ${PROJECT_NAME})
 set(PROJECT_LIB "${PROJECT_NAME}_lib")
@@ -18,6 +18,7 @@ set(lib_src
 	tokenizer/tokenizer.cpp
 	tokenizer/utils.hpp
 	error/error.h
+	error/error.cpp
 	symbol/type.h
 	symbol/symbol_table.h
 	symbol/symbol_table.cpp
@@ -50,7 +51,6 @@ set(lib_src
 
 set(main_src
 	main.cpp
-	fmts.hpp
 )
 
 add_library(${PROJECT_LIB} ${lib_src})
@@ -82,7 +82,7 @@ endif()
 
 # This will add the include path, respectively.
 # target_link_libraries(${PROJECT_LIB} fmt::fmt)
-target_link_libraries(${PROJECT_EXE} ${PROJECT_LIB} argparse fmt::fmt)
+target_link_libraries(${PROJECT_EXE} ${PROJECT_LIB} argparse)
 
 # For tests
 add_subdirectory(3rd_party/catch2)
@@ -97,7 +97,7 @@ set(test_src
 
 add_executable(miniplc0_test ${test_src})
 target_include_directories(miniplc0_test PRIVATE .)
-target_link_libraries(miniplc0_test Catch2::Test ${PROJECT_LIB} fmt::fmt)
+target_link_libraries(miniplc0_test Catch2::Test ${PROJECT_LIB})
 add_test(all_test miniplc0_test)
 find_program(OPEN_CPP_COVERAGE OpenCppCoverage.exe)
 

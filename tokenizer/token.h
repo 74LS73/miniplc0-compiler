@@ -119,6 +119,7 @@ class Token final {
     }
     return "Invalid";
   }
+  std::string Print();
 
  private:
   TokenType _type;

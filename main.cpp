@@ -3,8 +3,8 @@
 
 #include "analyser/analyser.h"
 #include "argparse/argparse.hpp"
-#include "fmt/core.h"
-#include "fmts.hpp"
+// #include "fmt/core.h"
+// #include "fmts.hpp"
 #include "generator/generator.h"
 #include "tokenizer/tokenizer.h"
 
@@ -12,7 +12,8 @@ std::vector<miniplc0::Token> _tokenize(std::istream &input) {
   miniplc0::Tokenizer tkz(input);
   auto p = tkz.AllTokens();
   if (p.second.has_value()) {
-    fmt::print(stderr, "Tokenization error: {}\n", p.second.value());
+    fprintf(stderr, "Tokenization error: %s\n",
+            p.second.value().GetString().c_str());
     // 由于平台限制，必须返回 0
     exit(0);
   }
@@ -21,7 +22,7 @@ std::vector<miniplc0::Token> _tokenize(std::istream &input) {
 
 void Tokenize(std::istream &input, std::ostream &output) {
   auto v = _tokenize(input);
-  for (auto &it : v) output << fmt::format("{}\n", it);
+  for (auto &it : v) output << it.Print() << std::endl;
   return;
 }
 
@@ -36,7 +37,9 @@ void Analyse(std::istream &input, std::ostream &output) {
     // auto v = p.first;
     // for (auto &it : v) output << fmt::format("{}\n", it);
   } catch (miniplc0::CompilationError &error) {
-    fmt::print(stderr, "Syntactic analysis error: {}\n", error);
+    fprintf(
+        stderr, "Line: %3lu Column: %3lu Syntactic analysis error: %s\n",
+        error.GetPos().first, error.GetPos().second, error.GetString().c_str());
     exit(0);
   }
 
@@ -65,7 +68,7 @@ int main(int argc, char **argv) {
   try {
     program.parse_args(argc, argv);
   } catch (const std::runtime_error &err) {
-    fmt::print(stderr, "{}\n\n", err.what());
+    fprintf(stderr, "%s\n\n", err.what());
     std::cout << program;
     exit(2);
   }
@@ -79,7 +82,7 @@ int main(int argc, char **argv) {
   if (input_file != "-") {
     inf.open(input_file, std::ios::in);
     if (!inf) {
-      fmt::print(stderr, "Fail to open {} for reading.\n", input_file);
+      fprintf(stderr, "Fail to open %s for reading.\n", input_file.c_str());
       exit(2);
     }
     input = &inf;
@@ -88,14 +91,14 @@ int main(int argc, char **argv) {
   if (output_file != "-") {
     outf.open(output_file, std::ios::out | std::ios::trunc);
     if (!outf) {
-      fmt::print(stderr, "Fail to open {} for writing.\n", output_file);
+      fprintf(stderr, "Fail to open %s for writing.\n", output_file.c_str());
       exit(2);
     }
     output = &outf;
   } else
     output = &std::cout;
   if (program["-t"] == true && program["-l"] == true) {
-    fmt::print(
+    fprintf(
         stderr,
         "You can only perform tokenization or syntactic analysis at one time.");
     exit(2);
@@ -105,7 +108,7 @@ int main(int argc, char **argv) {
   } else if (program["-l"] == true) {
     Analyse(*input, *output);
   } else {
-    fmt::print(stderr, "You must choose tokenization or syntactic analysis.");
+    fprintf(stderr, "You must choose tokenization or syntactic analysis.");
     exit(2);
   }
   return 0;

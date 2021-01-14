@@ -18,4 +18,7 @@ sudo docker rm $(sudo docker ps -a -q)
 删除所有无效镜像
 sudo docker rmi $(sudo docker images -f "dangling=true" -q)
 
+docker build . -t <your_tag>
+
+docker run --rm -it -v <path>:/tests <your_tag> <your_params>
 ```

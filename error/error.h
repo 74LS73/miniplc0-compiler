@@ -77,6 +77,7 @@ class CompilationError final {
 
   std::pair<uint64_t, uint64_t> GetPos() const { return _pos; }
   ErrorCode GetCode() const { return _err; }
+  std::string GetString();
 
  private:
   std::pair<uint64_t, uint64_t> _pos;

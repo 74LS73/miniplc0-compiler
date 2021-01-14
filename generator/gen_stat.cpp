@@ -74,8 +74,8 @@ void Generator::generateDeclStat(DeclStatNodePtr decl) {
 void Generator::generateIfStat(IfStatNodePtr if_node) {
   generateExpr(if_node->_expr);
   generateBlockStat(if_node->_if_block);
-
-  generateStat(if_node->_else_block);
+  if (if_node->_else_block != nullptr)
+    generateStat(if_node->_else_block);
 }
 
 void Generator::generateWhileStat(WhileStatNodePtr while_node) {

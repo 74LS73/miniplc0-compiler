@@ -43,7 +43,6 @@ set(lib_src
 	instruction/instruction.h
 	instruction/instruction.cpp
 	generator/generator.h
-	generator/o0.h
 	generator/generator.cpp
 	generator/gen_prog.cpp
 	generator/gen_func.cpp

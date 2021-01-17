@@ -1,6 +1,6 @@
 #include <memory>
 
-#include "symbol_table_stack.h"
+#include "symbol_table.h"
 namespace miniplc0 {
 
 FuncNodePtr getGetintFunction() {
@@ -98,16 +98,20 @@ FuncNodePtr getPutlnFunction() {
 }
 
 // 检查是否为标准库函数
-FuncNodePtr SymbolTableStack::getStandardFunctionByName(const std::string &s) {
-  if (s == "getint") return getGetintFunction();
-  if (s == "getdouble") return getGetdoubleFunction();
-  if (s == "getchar") return getGetcharFunction();
-  if (s == "putint") return getPutintFunction();
-  if (s == "putdouble") return getPutdoubleFunction();
-  if (s == "putchar") return getPutcharFunction();
-  if (s == "putstr") return getPutstrFunction();
-  if (s == "putln") return getPutlnFunction();
-  throw ErrorCode::ErrNeedDeclareSymbol;
+FuncNodePtr SymbolTable::getStandardFunctionByName(const std::string &s) {
+  FuncNodePtr func = nullptr;
+  if (s == "getint") func = getGetintFunction();
+  else if (s == "getdouble") func = getGetdoubleFunction();
+  else if (s == "getchar") func = getGetcharFunction();
+  else if (s == "putint") func = getPutintFunction();
+  else if (s == "putdouble") func = getPutdoubleFunction();
+  else if (s == "putchar") func = getPutcharFunction();
+  else if (s == "putstr") func = getPutstrFunction();
+  else if (s == "putln") func = getPutlnFunction();
+  else throw ErrorCode::ErrNeedDeclareSymbol;
+  std::cout << "fitst " << func->_name << std::endl;
+  addFunction(func);
+  return func;
 }
 
 }  // namespace miniplc0

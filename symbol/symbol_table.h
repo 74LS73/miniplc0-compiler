@@ -25,6 +25,7 @@ class SymbolTable final {
   // helper function
   template <typename T>
   void _add(std::map<string, T> &, string &, T, int64_t &);
+  FuncNodePtr getStandardFunctionByName(const std::string &s);
 
  public:
   std::map<std::string, DeclStatNodePtr> getVars() { return _vars; }
@@ -43,7 +44,8 @@ class SymbolTable final {
   // 是否是常量
   bool isConstant(const string &);
 
-  int getVariableNumber();
+  int getVariableNumber() { return _vars.size(); }
+  int getFunctionNumber() { return _function.size(); }
 };
 
 }  // namespace miniplc0

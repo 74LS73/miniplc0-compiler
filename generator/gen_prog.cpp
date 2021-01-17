@@ -11,9 +11,11 @@ void Generator::generateProgram(ProgNodePtr prog_node) {
   printf("version: %x\n", prog_node->_version);
   _Write(prog_node->_version, 4);
 
-  printf("globals.count: %x\n", prog_node->_vars.size() + prog_node->_funcs.size());
-  _Write(prog_node->_vars.size() + prog_node->_funcs.size(), 4);
+  printf("globals.count: %x\n",  prog_node->_globals->getVariableNumber() + prog_node->_globals->getFunctionNumber());
+  _Write(prog_node->_globals->getVariableNumber() + prog_node->_globals->getFunctionNumber(), 4);
 
+
+  int i = 0;
   for (auto &var : prog_node->_vars) {
     printf("is_const: %d\n", var->_const);
     _Write(var->_const, 1);
@@ -21,9 +23,12 @@ void Generator::generateProgram(ProgNodePtr prog_node) {
     _Write(8, 4);
     printf("value.item: %d\n", 0);
     _Write(0, 8);
+    i++;
   }
 
   for (auto &func : prog_node->_globals->getFuncs()) {
+    func.second->_global_index = i;
+    printf("global_index is %d\n", func.second->_global_index);
     printf("is_const: %d\n", 0);
     _Write(0, 1);
     printf("value.count: %d\n", func.first.size());
@@ -32,6 +37,7 @@ void Generator::generateProgram(ProgNodePtr prog_node) {
     for (auto &c : func.first) {
       _Write(c, 1);
     }
+    i++;
   }
 
   printf("functions.count: %x\n", prog_node->_funcs.size());

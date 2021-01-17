@@ -11,8 +11,8 @@ void Generator::generateFunction(FuncNodePtr func_node) {
   // 00 00 00 00 // functions[0].loc_slots
   // 00 00 00 04 // functions[0].body.count
 
-  printf("name: %d\n", func_node->_id);
-  _Write(func_node->_id, 4);
+  printf("name: %d\n", func_node->_global_index);
+  _Write(func_node->_global_index, 4);
   printf("ret_slots: %d\n", func_node->_return_slots);
   _Write(func_node->_return_slots, 4);
   printf("param_slots: %d\n", func_node->_param_slots);
@@ -24,6 +24,9 @@ void Generator::generateFunction(FuncNodePtr func_node) {
   _cur_func = func_node;
   auto block = func_node->_body;
   generateBlockStat(block);
+  if (func_node->_need_ret) {
+    generateRet();
+  }
   _cur_func = nullptr;
 
   auto func_block = _code_stack.top();

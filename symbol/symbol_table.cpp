@@ -15,7 +15,7 @@ int64_t SymbolTable::addVariable(DeclStatNodePtr decl) {
   if (hasFunction(name)) {
     throw ErrorCode::ErrDuplicateDeclaration;
   }
-  _add(_vars, name, decl, _nextFunctionIndex);
+  _add(_vars, name, decl, _nextVariableIndex);
   return decl->_id;
 }
 
@@ -43,8 +43,6 @@ bool SymbolTable::isConstant(const std::string &s) {
   return item->_const;
 }
 
-int SymbolTable::getVariableNumber() { return _vars.size(); }
-
 DeclStatNodePtr SymbolTable::getVariableByName(std::string &s) {
   auto var = _vars[s];
   if (var != nullptr) return var;
@@ -52,9 +50,9 @@ DeclStatNodePtr SymbolTable::getVariableByName(std::string &s) {
 }
 
 FuncNodePtr SymbolTable::getFunctionByName(std::string &s) {
-  auto func = _function[s];
-  if (func != nullptr) return func;
-  throw ErrorCode::ErrNeedDeclareSymbol;
+  if (_function.count(s))
+    return _function[s];
+  return getStandardFunctionByName(s);
 }
 
 }  // namespace miniplc0

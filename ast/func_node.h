@@ -24,9 +24,11 @@ class FuncNode : public Node {
   int32_t _param_slots;
   int32_t _loc_slots;
   bool _is_std;
+  bool _need_ret;
+  int32_t _global_index;
   BlockStatNodePtr _body;
   int64_t _id;
-  FuncNode() : _is_std(false) { _ntype = NodeType::FuncNode; }
+  FuncNode() : _is_std(false), _need_ret(true) { _ntype = NodeType::FuncNode; }
 };
 
 typedef std::shared_ptr<FuncNode> FuncNodePtr;

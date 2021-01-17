@@ -13,6 +13,8 @@ ProgNodePtr Analyser::analyseProgram() {
   _start->_return_slots = 0;
   _start->_param_slots = 0;
   _start->_loc_slots = 0;
+  _start->_need_ret = false;
+  _symbol_table_stack.declareFunction(_start);
   _start->_body = std::make_shared<BlockStatNode>();
 
   while (true) {
@@ -44,9 +46,9 @@ ProgNodePtr Analyser::analyseProgram() {
   auto call_expr = std::make_shared<CallExprNode>();
   call_expr->_name = "main";
   call_expr->_id = _symbol_table_stack.getFunctionByName("main")->_id;
+  call_expr->_return_slots = _symbol_table_stack.getFunctionByName("main")->_return_slots;
   call_main->_expr = call_expr;
   _start->_body->_stats.emplace_back(call_main);
-  _symbol_table_stack.declareFunction(_start);
   node->_globals = &_symbol_table_stack.getGlobalsScope();
 
   return node;

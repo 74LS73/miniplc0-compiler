@@ -35,6 +35,7 @@ class Generator final {
   void generateStore();
   void generateRet();
   void generateCallFunction(int64_t id);
+  void generateCallName(int64_t global_index);
   void generateBr(int64_t num);
   void generateBrTrue(int64_t num);
   void generateBreak();

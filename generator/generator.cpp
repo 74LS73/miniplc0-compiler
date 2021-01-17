@@ -115,6 +115,11 @@ void Generator::generateCallFunction(int64_t id) {
   _cur_block.emplace_back(Instruction(ISA::CALL, id));
 }
 
+void Generator::generateCallName(int64_t global_index) {
+  auto &_cur_block = _code_stack.top();
+  _cur_block.emplace_back(Instruction(ISA::CALLNAME, global_index));
+}
+
 void Generator::generateStore() {
   auto &_cur_block = _code_stack.top();
   _cur_block.emplace_back(Instruction(ISA::STORE_64));

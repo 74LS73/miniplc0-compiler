@@ -250,7 +250,7 @@ std::optional<CompilationError> Tokenizer::initDfaStateMachine() {
              "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
              DFAState::IDENTIFIER_STATE);
   addDfaEdge(DFAState::IDENTIFIER_STATE,
-             "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+             "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
              DFAState::IDENTIFIER_STATE);
 
   addDfaEdge(DFAState::INITIAL_STATE, "0123456789",

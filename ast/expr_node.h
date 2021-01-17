@@ -47,6 +47,9 @@ class CallExprNode : public ExprNode {
  public:
   std::string _name;
   int64_t _id;
+  int32_t _return_slots;
+  bool _is_std;
+  NodePtr _func;
   std::vector<shared_ptr<ExprNode>> _params;
   CallExprNode() { _ntype = NodeType::CallExprNode; }
 };

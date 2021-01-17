@@ -243,6 +243,10 @@ ExprNodePtr Analyser::analyseCallExpression() {
   auto func = _symbol_table_stack.getFunctionByName(call_func_name);
   node->_name = call_func_name;
   node->_id = func->_id;
+  node->_return_slots = func->_return_slots;
+  node->_type = func->_return_type;
+  node->_is_std = func->_is_std;
+  node->_func = func;
 
   next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::LEFT_BRACKET) {

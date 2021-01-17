@@ -72,11 +72,16 @@ void Generator::generateOpExpr(OpExprNodePtr op_node) {
 }
 
 void Generator::generateCallExpr(CallExprNodePtr call_node) {
-  generateStackAlloc(1);
+  generateStackAlloc(call_node->_return_slots);
   for (auto &expr : call_node->_params) {
     generateExpr(expr);
   }
-  generateCallFunction(call_node->_id);
+  if (call_node->_is_std) {
+    FuncNodePtr func = std::dynamic_pointer_cast<FuncNode>(call_node->_func);
+    generateCallName(func->_global_index);
+  } else {
+    generateCallFunction(call_node->_id);
+  }
 }
 
 void Generator::generateItemExpr(ItemExprNodePtr item_node) {

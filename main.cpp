@@ -44,7 +44,7 @@ void Analyse(std::istream &input, std::ostream &output) {
     fprintf(stderr, "Line: %3lu Column: %3lu Syntactic analysis error: %s\n",
             error.GetPos().first, error.GetPos().second,
             error.GetString().c_str());
-    exit(0);
+    exit(2);
   }
 
   // if (p.second.has_value()) {

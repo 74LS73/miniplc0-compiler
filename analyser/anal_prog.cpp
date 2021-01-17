@@ -50,7 +50,7 @@ ProgNodePtr Analyser::analyseProgram() {
   call_expr->_return_slots = _symbol_table_stack.getFunctionByName("main")->_return_slots;
   call_main->_expr = call_expr;
   _start->_body->_stats.emplace_back(call_main);
-  node->_globals = &_symbol_table_stack.getGlobalsScope();
+  node->_globals = &_symbol_table_stack.getGlobalTable();
 
   return node;
 }

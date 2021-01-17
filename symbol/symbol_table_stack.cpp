@@ -39,6 +39,12 @@ SymbolTable &SymbolTableStack::getCurrentTable() {
   return _symbol_table_stack[_cur_scope_level];
 }
 
+SymbolTable &SymbolTableStack::getGlobalTable() {
+  return _symbol_table_stack[_global_scope_level];
+}
+
+
+
 int SymbolTableStack::getCurrentScopeLevel() { return _cur_scope_level; }
 
 // 是否被声明过
@@ -95,8 +101,5 @@ int SymbolTableStack::getCurrentVariableNumber() {
   return _symbol_table_stack[_cur_scope_level].getVariableNumber();
 }
 
-SymbolTable &SymbolTableStack::getGlobalsScope() {
-  return _symbol_table_stack[_global_scope_level];
-}
 
 }  // namespace miniplc0

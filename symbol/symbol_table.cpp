@@ -12,7 +12,7 @@ void SymbolTable::_add(std::map<std::string, T> &mp, string &name, T item,
 
 int64_t SymbolTable::addVariable(DeclStatNodePtr decl) {
   std::string name = decl->_name;
-  if (hasFunction(name)) {
+  if (hasVariable(name)) {
     throw ErrorCode::ErrDuplicateDeclaration;
   }
   _add(_vars, name, decl, _nextVariableIndex);

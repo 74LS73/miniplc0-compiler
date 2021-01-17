@@ -28,6 +28,7 @@ FuncNodePtr Analyser::analyseFunction() {
   }
 
   _symbol_table_stack.pushNextScope();
+  _symbol_table_stack.getCurrentTable().setCurrentFunction(node);
 
   // 判断一下是否有参数
   next = nextToken();

@@ -104,7 +104,7 @@ DeclStatNodePtr Analyser::analyseDeclStatement(VariableType vscope) {
   // TYPE
   next = nextToken();
   if (!next.has_value() || !(next->GetType() == TokenType::INT ||
-                            next->GetType() == TokenType::DOUBLE)) {
+                             next->GetType() == TokenType::DOUBLE)) {
     throw AnalyserError({_current_pos, ErrorCode::ErrNeedType});
   }
 
@@ -226,13 +226,14 @@ StatNodePtr Analyser::analyseReturnStatement() {
     throw AnalyserError({_current_pos, ErrorCode::ErrNeedReturn});
   }
   auto node = std::make_shared<ReturnStatNode>();
-  next = nextToken();
-  if (!next.has_value() || next.value().GetType() != TokenType::SEMICOLON) {
-    unreadToken();
-    node->_expr = analyseExpression();
-    next = nextToken();
-  }
 
+  auto func = _symbol_table_stack.getCurrentTable().getCurrentFunction();
+
+  if (func->_return_slots) {
+    node->_expr = analyseExpression();
+  }
+  
+  next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::SEMICOLON) {
     throw AnalyserError({_current_pos, ErrorCode::ErrNeedSemicolon});
   }
@@ -257,14 +258,14 @@ BlockStatNodePtr Analyser::analyseBlockStatement() {
   if (!next.has_value() || next.value().GetType() != TokenType::LEFT_BRACE) {
     throw AnalyserError({_current_pos, ErrorCode::ErrNeedBrace});
   }
-  _symbol_table_stack.pushNextScopeWithIndex();
+  // _symbol_table_stack.pushNextScopeWithIndex();
   while (true) {
     next = nextToken();
     if (!next.has_value()) {
       throw AnalyserError({_current_pos, ErrorCode::ErrNeedBrace});
     }
     if (next.has_value() && next.value().GetType() == TokenType::RIGHT_BRACE) {
-      _symbol_table_stack.popCurrentScopeWithIndex();
+      // _symbol_table_stack.popCurrentScopeWithIndex();
       return node;
     }
     unreadToken();

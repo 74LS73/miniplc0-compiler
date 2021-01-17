@@ -15,7 +15,7 @@ std::vector<miniplc0::Token> _tokenize(std::istream &input) {
     fprintf(stderr, "Tokenization error: %s\n",
             p.second.value().GetString().c_str());
     // 由于平台限制，必须返回 0
-    exit(0);
+    exit(2);
   }
   return p.first;
 }

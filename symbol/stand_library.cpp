@@ -1,80 +1,92 @@
-#include "symbol_table_stack.h"
+#include <memory>
 
+#include "symbol_table_stack.h"
 namespace miniplc0 {
 
-FunctionItem getGetintFunction() {
-  auto func = FunctionItem();
-  func.name = "getint";
-  func.param_slots = 0;
-  func.return_type = TokenType::INT;
-  func.return_slots = 1;
+FuncNodePtr getGetintFunction() {
+  auto func = std::make_shared<FuncNode>();
+  func->_name = "getint";
+  func->_param_slots = 0;
+  func->_return_type = TokenType::INT;
+  func->_return_slots = 1;
+  func->_is_std = true;
   return func;
 }
 
-FunctionItem getGetdoubleFunction() {
-  auto func = FunctionItem();
-  func.name = "getdouble";
-  func.param_slots = 0;
-  func.return_type = TokenType::INT;
-  func.return_slots = 1;
+FuncNodePtr getGetdoubleFunction() {
+  auto func = std::make_shared<FuncNode>();
+  func->_name = "getdouble";
+  func->_param_slots = 0;
+  func->_return_type = TokenType::INT;
+  func->_return_slots = 1;
+  func->_is_std = true;
   return func;
 }
 
-FunctionItem getGetcharFunction() {
-  auto func = FunctionItem();
-  func.name = "getchar";
-  func.param_slots = 0;
-  func.return_type = TokenType::INT;
-  func.return_slots = 1;
+FuncNodePtr getGetcharFunction() {
+  auto func = std::make_shared<FuncNode>();
+  func->_name = "getchar";
+  func->_param_slots = 0;
+  func->_return_type = TokenType::INT;
+  func->_return_slots = 1;
+  func->_is_std = true;
   return func;
 }
 
-FunctionItem getPutintFunction() {
-  auto func = FunctionItem();
-  func.name = "putint";
-  func.param_slots = 1;
-  func.return_type = TokenType::VOID;
-  func.return_slots = 0;
+FuncNodePtr getPutintFunction() {
+  auto func = std::make_shared<FuncNode>();
+  func->_name = "putint";
+  func->_param_slots = 1;
+  auto p = std::make_shared<DeclStatNode>();
+  p->_type = TokenType::INT;
+  p->_const = false;
+  func->_params.emplace_back(p);
+  func->_return_type = TokenType::VOID;
+  func->_return_slots = 0;
+  func->_is_std = true;
   return func;
 }
 
-FunctionItem getPutdoubleFunction() {
-  auto func = FunctionItem();
-  func.name = "putdouble";
-  func.param_slots = 1;
-  func.return_type = TokenType::VOID;
-  func.return_slots = 0;
+FuncNodePtr getPutdoubleFunction() {
+  auto func = std::make_shared<FuncNode>();
+  func->_name = "putdouble";
+  func->_param_slots = 1;
+  func->_return_type = TokenType::VOID;
+  func->_return_slots = 0;
+  func->_is_std = true;
   return func;
 }
-FunctionItem getPutcharFunction() {
-  auto func = FunctionItem();
-  func.name = "putchar";
-  func.param_slots = 1;
-  func.return_type = TokenType::VOID;
-  func.return_slots = 0;
+FuncNodePtr getPutcharFunction() {
+  auto func = std::make_shared<FuncNode>();
+  func->_name = "putchar";
+  func->_param_slots = 1;
+  func->_return_type = TokenType::VOID;
+  func->_return_slots = 0;
+  func->_is_std = true;
   return func;
 }
-FunctionItem getPutstrFunction() {
-  auto func = FunctionItem();
-  func.name = "putstr";
-  func.param_slots = 1;
-  func.return_type = TokenType::VOID;
-  func.return_slots = 0;
+FuncNodePtr getPutstrFunction() {
+  auto func = std::make_shared<FuncNode>();
+  func->_name = "putstr";
+  func->_param_slots = 1;
+  func->_return_type = TokenType::VOID;
+  func->_return_slots = 0;
+  func->_is_std = true;
   return func;
 }
 
-FunctionItem getPutlnFunction() {
-  auto func = FunctionItem();
-  func.name = "putln";
-  func.param_slots = 0;
-  func.return_type = TokenType::VOID;
-  func.return_slots = 0;
+FuncNodePtr getPutlnFunction() {
+  auto func = std::make_shared<FuncNode>();
+  func->_name = "putln";
+  func->_param_slots = 0;
+  func->_return_type = TokenType::VOID;
+  func->_return_slots = 0;
+  func->_is_std = true;
   return func;
 }
 
 // 检查是否为标准库函数
-std::optional<FunctionItem> SymbolTableStack::getStandardFunctionByName(
-    const std::string &s) {
+FuncNodePtr SymbolTableStack::getStandardFunctionByName(const std::string &s) {
   if (s == "getint") return getGetintFunction();
   if (s == "getdouble") return getGetdoubleFunction();
   if (s == "getchar") return getGetcharFunction();
@@ -83,7 +95,7 @@ std::optional<FunctionItem> SymbolTableStack::getStandardFunctionByName(
   if (s == "putchar") return getPutcharFunction();
   if (s == "putstr") return getPutstrFunction();
   if (s == "putln") return getPutlnFunction();
-  return {};
+  throw ErrorCode::ErrNeedDeclareSymbol;
 }
 
 }  // namespace miniplc0

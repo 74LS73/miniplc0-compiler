@@ -21,4 +21,8 @@ sudo docker rmi $(sudo docker images -f "dangling=true" -q)
 docker build . -t <your_tag>
 
 docker run --rm -it -v <path>:/tests <your_tag> <your_params>
+
+```
+```
+sudo docker run --rm -it -v  /home/lighten/Code/miniplc0-compiler:/app/build/test miniplc0
 ```

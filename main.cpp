@@ -31,15 +31,14 @@ void Analyse(std::istream &input, std::ostream &output) {
   miniplc0::Analyser analyser(tks);
   try {
     auto p = analyser.Analyse();
-    printf("==== begin Generator! ====\n");
-    auto generator = miniplc0::Generator();
+    printf("==== Begin Generator! ====\n");
+    auto generator = miniplc0::Generator(output);
     generator.generateProgram(p);
 
-    for (auto &isa : generator.instructions) { 
-      char *val = isa.ISA2Hex();
-      printf("%d %d\n", isa.GetLen(), isa.GetISA());
-      output.write(val, isa.GetLen());
-    }
+    // for (auto &isa : generator.instructions) { 
+    //   char *val = isa.ISA2Hex();
+    //   output.write(val, isa.GetLen());
+    // }
     
   } catch (miniplc0::CompilationError &error) {
     fprintf(stderr, "Line: %3lu Column: %3lu Syntactic analysis error: %s\n",

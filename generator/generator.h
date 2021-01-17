@@ -15,7 +15,8 @@ using std::vector;
 
 class Generator final {
  public:
-  Generator() = default;
+  Generator() = delete;
+  Generator(std::ostream &output) { _output = &output; };
   // void operator+=(Generator &);
   int64_t size() { return instructions.size(); }
 
@@ -41,6 +42,7 @@ class Generator final {
   void fixBreakAndContinue();
 
  private:
+  std::ostream *_output;
   FuncNodePtr _cur_func;
   std::stack<vector<Instruction>> _code_stack;
 
@@ -69,6 +71,9 @@ class Generator final {
   void generateCallExpr(CallExprNodePtr);
   void generateItemExpr(ItemExprNodePtr);
   void generateIdentExpr(IdentExprNodePtr);
+
+ private:
+  void _Write(const uint64_t &, size_t);
 };
 
 }  // namespace miniplc0

@@ -1,5 +1,6 @@
 #include "generator.h"
 
+#include "utils/utils.h"
 namespace miniplc0 {
 
 // void Generator::operator+=(Generator &rhs) {
@@ -105,7 +106,6 @@ void Generator::generateLiteralValue(int64_t *val) {
   _cur_block.emplace_back(Instruction(ISA::PUSH, *val));
 }
 
-
 void Generator::generateStackAlloc(int64_t size) {
   auto &_cur_block = _code_stack.top();
   _cur_block.emplace_back(Instruction(ISA::STACKALLOC, size));
@@ -151,15 +151,13 @@ void Generator::fixBreakAndContinue() {
     if (ins.GetISA() == ISA::BREAK_FAKE) {
       ins.SetISA(ISA::BR);
       ins.SetX(_cur_block.size() - pos - 1);
-    }
-    else if (ins.GetISA() == ISA::CONTINUE_FAKE) {
+    } else if (ins.GetISA() == ISA::CONTINUE_FAKE) {
       ins.SetISA(ISA::BR);
       ins.SetX(-pos);
     }
     pos++;
   }
 }
-
 
 std::string ISA2Str(ISA isa) {
   switch (isa) {
@@ -278,6 +276,19 @@ void Generator::show() {
   auto &_cur_block = _code_stack.top();
   for (auto &ins : _cur_block) {
     std::cout << ISA2Str(ins.GetISA()) << " " << ins.GetX() << std::endl;
+  }
+}
+
+void Generator::_Write(const uint64_t &v, size_t __n) {
+  if (__n == 1) {
+    uint8_t val = uint8_t(v);
+    _output->write((char *)(&val), 1);
+  } else if (__n == 4) {
+    uint32_t val = SwapInt2Endian(v);
+    _output->write((char *)(&val), 4);
+  } else {
+    uint64_t val = SwapLong2Endian(v);
+    _output->write((char *)(&val), 8);
   }
 }
 

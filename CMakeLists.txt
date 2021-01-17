@@ -43,11 +43,14 @@ set(lib_src
 	instruction/instruction.h
 	instruction/instruction.cpp
 	generator/generator.h
+	generator/o0.h
 	generator/generator.cpp
 	generator/gen_prog.cpp
 	generator/gen_func.cpp
 	generator/gen_stat.cpp
 	generator/gen_expr.cpp
+	utils/utils.h
+	utils/utils.cpp
 )
 
 set(main_src

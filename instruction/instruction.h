@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <utility>
+#include <iostream>
 
 namespace miniplc0 {
 
@@ -20,6 +21,7 @@ enum ISA {
   LOAD_32,
   LOAD_64,
   STORE_8,
+  STORE_16,
   STORE_32,
   STORE_64,
   ALLOC,
@@ -77,7 +79,11 @@ class Instruction final {
   friend void swap(Instruction &lhs, Instruction &rhs);
 
  public:
-  Instruction(ISA opr, uint64_t x) : _opr(opr), _x(x), _len(9) {}
+  Instruction(ISA opr, uint64_t x) : _opr(opr), _x(x), _len(5) {
+    if (opr == ISA::PUSH) {
+      _len = 9;
+    }
+  }
   Instruction(ISA opr) : _opr(opr), _x(0), _len(1) {}
 
   Instruction() : Instruction(ISA::NOP) {}
@@ -102,6 +108,7 @@ class Instruction final {
 
   char *ISA2Hex();
   int64_t GetLen() { return _len; }
+  void Write(std::ostream &output) { output.write(ISA2Hex(), GetLen()); }
 
  private:
   ISA _opr;

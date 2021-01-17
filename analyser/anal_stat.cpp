@@ -67,7 +67,7 @@ StatNodePtr Analyser::analyseExprStatement() {
 // let_decl_stmt -> 'let' IDENT ':' ty ('=' expr)? ';'
 // const_decl_stmt -> 'const' IDENT ':' ty '=' expr ';'
 // decl_stmt -> let_decl_stmt | const_decl_stmt
-StatNodePtr Analyser::analyseDeclStatement(VariableType vscope) {
+DeclStatNodePtr Analyser::analyseDeclStatement(VariableType vscope) {
   auto node = std::make_shared<DeclStatNode>();
   node->_vscope = vscope;
   auto next = nextToken();

@@ -31,8 +31,7 @@ bool SymbolTableStack::isFunctionDeclared(const string &token_name) {
     return true;
   // 检查是否是标准库函数
   auto func = getStandardFunctionByName(token_name);
-  if (!func.has_value()) return false;
-  // _symbol_table_stack[_global_scope_level].addFunction(func.value());
+  _symbol_table_stack[_global_scope_level].addFunction(func);
   return true;
 }
 
@@ -69,7 +68,22 @@ DeclStatNodePtr SymbolTableStack::getGlobalVariableByName(string s) {
 }
 
 FuncNodePtr SymbolTableStack::getFunctionByName(string s) {
-  return _symbol_table_stack[0].getFunctionByName(s);
+  try {
+    return _symbol_table_stack[0].getFunctionByName(s);
+  } catch (ErrorCode e) {
+    if (e == ErrorCode::ErrNeedDeclareSymbol) {
+      return getStandardFunctionByName(s);
+    }
+  }
 }
+
+int SymbolTableStack::getCurrentVariableNumber() {
+  return _symbol_table_stack[_cur_scope_level].getVariableNumber();
+}
+
+SymbolTable &SymbolTableStack::getGlobalsScope() {
+  return _symbol_table_stack[_global_scope_level];
+}
+
 
 }  // namespace miniplc0

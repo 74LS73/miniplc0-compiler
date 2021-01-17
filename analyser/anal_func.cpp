@@ -31,12 +31,14 @@ FuncNodePtr Analyser::analyseFunction() {
   // 判断一下是否有参数
   next = nextToken();
   if (next.has_value() && next.value().GetType() == TokenType::RIGHT_BRACKET) {
+    node->_param_slots = 0;
     goto ARROW;
   }
   unreadToken();
 
   analyseFunctionParamList(node);
 
+  node->_param_slots = node->_params.size();
   // )
   next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::RIGHT_BRACKET) {
@@ -57,12 +59,19 @@ ARROW:
   }
 
   node->_return_type = next.value().GetType();
+  if (node->_return_type != TokenType::VOID) {
+    node->_return_slots = 1;
+  } else {
+    node->_return_slots = 0;
+  }
 
   _symbol_table_stack.declareFunction(node);
 
   // body
   auto body = analyseBlockStatement();
   node->_body = body;
+
+  node->_loc_slots = _symbol_table_stack.getCurrentVariableNumber();
 
   _symbol_table_stack.popCurrentScope();
 

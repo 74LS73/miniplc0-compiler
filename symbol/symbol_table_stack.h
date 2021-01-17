@@ -33,17 +33,18 @@ class SymbolTableStack final {
   int64_t declareGlobalVariable(DeclStatNodePtr);
   int64_t declareFunction(FuncNodePtr);
 
-  int getVariableNumber();
+  int getCurrentVariableNumber();
   DeclStatNodePtr getVariableByName(std::string);
   DeclStatNodePtr getGlobalVariableByName(std::string);
   FuncNodePtr getFunctionByName(std::string);
   int getCurrentScopeLevel();
+  SymbolTable &getGlobalsScope();
 
  private:
   // 返回值和返回引用的区别了解一下
   SymbolTable &getCurrentTable();
   // 检查是否为标准库函数
-  std::optional<FunctionItem> getStandardFunctionByName(const std::string &);
+  FuncNodePtr getStandardFunctionByName(const std::string &);
 };
 
 }  // namespace miniplc0

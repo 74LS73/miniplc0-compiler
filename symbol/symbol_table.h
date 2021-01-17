@@ -4,7 +4,7 @@
 #include <optional>
 #include <vector>
 
-#include "ast/ast.h"
+#include "ast/func_node.h"
 #include "tokenizer/token.h"
 #include "type.h"
 
@@ -27,6 +27,8 @@ class SymbolTable final {
   void _add(std::map<string, T> &, string &, T, int64_t &);
 
  public:
+  std::map<std::string, DeclStatNodePtr> getVars() { return _vars; }
+  std::map<std::string, FuncNodePtr> getFuncs() { return _function; }
   int64_t addVariable(DeclStatNodePtr);
   int64_t addFunction(FuncNodePtr);
 

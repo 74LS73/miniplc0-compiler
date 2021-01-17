@@ -74,7 +74,7 @@ class Analyser final {
   // <表达式语句>
   StatNodePtr analyseExprStatement();
   // <声明语句>
-  StatNodePtr analyseDeclStatement(VariableType);
+  DeclStatNodePtr analyseDeclStatement(VariableType);
   // <if 语句>
   StatNodePtr analyseIfStatement();
   // <while 语句>

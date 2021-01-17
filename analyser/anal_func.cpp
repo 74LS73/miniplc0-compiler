@@ -70,6 +70,7 @@ ARROW:
   _symbol_table_stack.declareFunction(node);
 
   // body
+  printf("analyse function\n");
   auto body = analyseBlockStatement();
   node->_body = body;
 

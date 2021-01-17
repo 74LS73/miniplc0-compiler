@@ -4,6 +4,7 @@ namespace miniplc0 {
 
 // program -> decl_stmt* function*
 ProgNodePtr Analyser::analyseProgram() {
+  printf("analyse program\n");
   auto node = std::make_shared<ProgNode>();
   optional<CompilationError> err;
 

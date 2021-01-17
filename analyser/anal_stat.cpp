@@ -227,6 +227,7 @@ StatNodePtr Analyser::analyseReturnStatement() {
   }
   auto node = std::make_shared<ReturnStatNode>();
 
+printf("analyse return\n");
   auto func = _symbol_table_stack.getCurrentTable().getCurrentFunction();
 
   if (func->_return_slots) {

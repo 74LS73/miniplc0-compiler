@@ -23,6 +23,7 @@ ProgNodePtr Analyser::analyseProgram() {
     switch (next.value().GetType()) {
       case TokenType::FN: {
         unreadToken();
+        
         auto func = analyseFunction();
         node->_funcs.emplace_back(func);
         break;

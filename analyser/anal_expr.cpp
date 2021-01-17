@@ -219,6 +219,9 @@ ExprNodePtr Analyser::analyseAssignExpression() {
   if (!next.has_value() || next.value().GetType() != TokenType::ASSIGN) {
     throw ErrorCode::ErrCompiler;
   }
+  if (lhs->_const) {
+    throw ErrorCode::ErrAssignToConstant;
+  }
 
   auto rhs = analyseExpression();
   if (lhs->_type != rhs->_type) {

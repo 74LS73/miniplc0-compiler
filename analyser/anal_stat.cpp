@@ -77,7 +77,7 @@ DeclStatNodePtr Analyser::analyseDeclStatement(VariableType vscope) {
   } else if (next.value().GetType() == TokenType::LET) {
     node->_const = false;
   } else if (next.value().GetType() == TokenType::CONST) {
-    node->_const = false;
+    node->_const = true;
   } else {
     throw ErrorCode::ErrNeedDeclareSymbol;
   }
@@ -104,7 +104,7 @@ DeclStatNodePtr Analyser::analyseDeclStatement(VariableType vscope) {
   // TYPE
   next = nextToken();
   if (!next.has_value() || !(next->GetType() == TokenType::INT ||
-                            next->GetType() == TokenType::VOID)) {
+                            next->GetType() == TokenType::DOUBLE)) {
     throw AnalyserError({_current_pos, ErrorCode::ErrNeedType});
   }
 
@@ -260,6 +260,9 @@ BlockStatNodePtr Analyser::analyseBlockStatement() {
   _symbol_table_stack.pushNextScopeWithIndex();
   while (true) {
     next = nextToken();
+    if (!next.has_value()) {
+      throw AnalyserError({_current_pos, ErrorCode::ErrNeedBrace});
+    }
     if (next.has_value() && next.value().GetType() == TokenType::RIGHT_BRACE) {
       _symbol_table_stack.popCurrentScopeWithIndex();
       return node;

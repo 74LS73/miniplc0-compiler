@@ -324,13 +324,11 @@ IdentExprNodePtr Analyser::analyseIdentExpression() {
   node->_name = next.value().GetValueString();
   auto var = _symbol_table_stack.getVariableByName(node->_name);
 
-  if (var->_const) {
-    throw ErrorCode::ErrAssignToConstant;
-  }
   // lhs->_type = var.value().type;
   node->_type = var->_type;
   node->_id = var->_id;
   node->_vscope = var->_vscope;
+  node->_const = var->_const;
   return node;
 }
 

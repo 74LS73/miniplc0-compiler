@@ -103,7 +103,8 @@ DeclStatNodePtr Analyser::analyseDeclStatement(VariableType vscope) {
 
   // TYPE
   next = nextToken();
-  if (!next.has_value() || !next.value().isTokenAType()) {
+  if (!next.has_value() || !(next->GetType() == TokenType::INT ||
+                            next->GetType() == TokenType::VOID)) {
     throw AnalyserError({_current_pos, ErrorCode::ErrNeedType});
   }
 
@@ -241,8 +242,10 @@ StatNodePtr Analyser::analyseReturnStatement() {
   return_decl->_vscope = VariableType::PARAM;
   if (_symbol_table_stack.isLocalVariableDeclared("#return")) {
     node->_id = _symbol_table_stack.getVariableByName("#return")->_id;
+    printf("#return is %d\n", node->_id);
   } else {
     node->_id = _symbol_table_stack.declareVariable(return_decl);
+    printf("#return is %d\n", return_decl->_id);
   }
   return node;
 }
@@ -254,9 +257,11 @@ BlockStatNodePtr Analyser::analyseBlockStatement() {
   if (!next.has_value() || next.value().GetType() != TokenType::LEFT_BRACE) {
     throw AnalyserError({_current_pos, ErrorCode::ErrNeedBrace});
   }
+  _symbol_table_stack.pushNextScopeWithIndex();
   while (true) {
     next = nextToken();
     if (next.has_value() && next.value().GetType() == TokenType::RIGHT_BRACE) {
+      _symbol_table_stack.popCurrentScopeWithIndex();
       return node;
     }
     unreadToken();

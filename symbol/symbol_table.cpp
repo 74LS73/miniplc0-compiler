@@ -24,18 +24,18 @@ int64_t SymbolTable::addFunction(FuncNodePtr func) {
   if (hasFunction(name)) {
     throw ErrorCode::ErrDuplicateDeclaration;
   }
-  _add(_function, name, func, _nextFunctionIndex);
+  _add(_functions, name, func, _nextFunctionIndex);
   return func->_id;
 }
 
 bool SymbolTable::hasFunction(const std::string &s) {
-  return _function.count(s);
+  return _functions.count(s);
 }
 
 bool SymbolTable::hasVariable(const std::string &s) { return _vars.count(s); }
 
 bool SymbolTable::isDeclared(const std::string &s) {
-  return _vars.count(s) + _function.count(s);
+  return _vars.count(s) + _functions.count(s);
 }
 
 bool SymbolTable::isConstant(const std::string &s) {
@@ -50,8 +50,8 @@ DeclStatNodePtr SymbolTable::getVariableByName(std::string &s) {
 }
 
 FuncNodePtr SymbolTable::getFunctionByName(std::string &s) {
-  if (_function.count(s))
-    return _function[s];
+  if (_functions.count(s))
+    return _functions[s];
   return getStandardFunctionByName(s);
 }
 

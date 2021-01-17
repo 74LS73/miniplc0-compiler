@@ -14,6 +14,26 @@ void SymbolTableStack::popCurrentScope() {
   --_cur_scope_level;
 }
 
+// 加入一层table
+void SymbolTableStack::pushNextScopeWithIndex() {
+  auto &old_st = getCurrentTable();
+  _symbol_table_stack.push_back(SymbolTable());
+  auto &new_st = getCurrentTable();
+  new_st._nextFunctionIndex = old_st._nextFunctionIndex;
+  new_st._nextVariableIndex = old_st._nextVariableIndex;
+  ++_cur_scope_level;
+}
+
+// 删除当前table
+void SymbolTableStack::popCurrentScopeWithIndex() {
+  auto &old_st = getCurrentTable();
+  _symbol_table_stack.erase(_symbol_table_stack.end() - 1);
+  auto &new_st = getCurrentTable();
+  new_st._nextFunctionIndex = old_st._nextFunctionIndex;
+  new_st._nextVariableIndex = old_st._nextVariableIndex;
+  --_cur_scope_level;
+}
+
 // 获取当前table
 SymbolTable &SymbolTableStack::getCurrentTable() {
   return _symbol_table_stack[_cur_scope_level];

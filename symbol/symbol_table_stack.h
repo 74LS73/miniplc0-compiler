@@ -24,6 +24,8 @@ class SymbolTableStack final {
  public:
   void pushNextScope();
   void popCurrentScope();
+  void pushNextScopeWithIndex();
+  void popCurrentScopeWithIndex();
 
   bool isLocalVariableDeclared(const std::string &);
   bool isFunctionDeclared(const std::string &);

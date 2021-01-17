@@ -7,7 +7,6 @@ namespace miniplc0 {
 // //               |              |                        |  |
 // //               function_name  param_list     return_type  function_body
 FuncNodePtr Analyser::analyseFunction() {
-  printf("sdfsdf");
   auto node = std::make_shared<FuncNode>();
   auto next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::FN) {
@@ -71,7 +70,6 @@ ARROW:
   _symbol_table_stack.declareFunction(node);
 
   // body
-  printf("sdfsdf");
   auto body = analyseBlockStatement();
   node->_body = body;
 

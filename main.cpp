@@ -28,6 +28,7 @@ void Tokenize(std::istream &input, std::ostream &output) {
 
 void Analyse(std::istream &input, std::ostream &output) {
   auto tks = _tokenize(input);
+  printf("here!\n");
   miniplc0::Analyser analyser(tks);
   try {
     auto p = analyser.Analyse();

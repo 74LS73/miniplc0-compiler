@@ -144,8 +144,10 @@ std::optional<CompilationError> Tokenizer::checkToken(const Token& t) {
 
 void Tokenizer::readAll() {
   if (_initialized) return;
-  for (std::string tp; std::getline(_rdr, tp);)
+  for (std::string tp; std::getline(_rdr, tp);) {
+    std::cout << tp << std::endl;
     _lines_buffer.emplace_back(std::move(tp + "\n"));
+  }
   _initialized = true;
   _ptr = std::make_pair<int64_t, int64_t>(0, 0);
   return;

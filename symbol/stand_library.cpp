@@ -51,6 +51,10 @@ FuncNodePtr getPutdoubleFunction() {
   auto func = std::make_shared<FuncNode>();
   func->_name = "putdouble";
   func->_param_slots = 1;
+  auto p = std::make_shared<DeclStatNode>();
+  p->_type = TokenType::DOUBLE;
+  p->_const = false;
+  func->_params.emplace_back(p);
   func->_return_type = TokenType::VOID;
   func->_return_slots = 0;
   func->_is_std = true;
@@ -60,6 +64,10 @@ FuncNodePtr getPutcharFunction() {
   auto func = std::make_shared<FuncNode>();
   func->_name = "putchar";
   func->_param_slots = 1;
+  auto p = std::make_shared<DeclStatNode>();
+  p->_type = TokenType::INT;
+  p->_const = false;
+  func->_params.emplace_back(p);
   func->_return_type = TokenType::VOID;
   func->_return_slots = 0;
   func->_is_std = true;
@@ -69,6 +77,10 @@ FuncNodePtr getPutstrFunction() {
   auto func = std::make_shared<FuncNode>();
   func->_name = "putstr";
   func->_param_slots = 1;
+  auto p = std::make_shared<DeclStatNode>();
+  p->_type = TokenType::INT;
+  p->_const = false;
+  func->_params.emplace_back(p);
   func->_return_type = TokenType::VOID;
   func->_return_slots = 0;
   func->_is_std = true;

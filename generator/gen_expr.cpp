@@ -82,7 +82,8 @@ void Generator::generateCallExpr(CallExprNodePtr call_node) {
     generateCallName(func->_global_index);
     
   } else {
-    generateCallFunction(call_node->_id);
+    auto func = std::dynamic_pointer_cast<FuncNode>(call_node->_func);
+    generateCallFunction(func->_id);
   }
 }
 

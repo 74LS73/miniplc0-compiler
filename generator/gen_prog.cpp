@@ -17,8 +17,9 @@ void Generator::generateProgram(ProgNodePtr prog_node) {
              prog_node->_globals->getFunctionNumber(),
          4);
 
-  int i = 0;
+  int global_index = 0;
   for (auto &var : prog_node->_globals->_vars) {
+    printf("global_index is %d\n", global_index);
     printf("is_const: %d\n", var.second->_const);
     _Write(var.second->_const, 1);
     if (var.second->_type == TokenType::STRING_LITERAL) {
@@ -34,11 +35,15 @@ void Generator::generateProgram(ProgNodePtr prog_node) {
       printf("value.item: %d\n", 0);
       _Write(0, 8);
     }
-    i++;
+    global_index++;
   }
-
+  
+  int func_index = 0;
   for (auto &func : prog_node->_globals->getFuncs()) {
-    func.second->_global_index = i;
+    func.second->_global_index = global_index;
+    if (!func.second->_is_std) {
+      func.second->_id = func_index ++;
+    }
     printf("global_index is %d\n", func.second->_global_index);
     printf("is_const: %d\n", 0);
     _Write(0, 1);
@@ -48,7 +53,7 @@ void Generator::generateProgram(ProgNodePtr prog_node) {
     for (auto &c : func.first) {
       _Write(c, 1);
     }
-    i++;
+    global_index++;
   }
 
   printf("functions.count: %x\n", prog_node->_funcs.size());

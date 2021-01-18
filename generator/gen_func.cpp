@@ -20,6 +20,11 @@ void Generator::generateFunction(FuncNodePtr func_node) {
   printf("loc_slots: %d\n", func_node->_loc_slots);
   _Write(func_node->_loc_slots, 4);
 
+  int i=0;
+  for (auto &var : func_node->_locs) {
+    var->_id = i++;
+  }
+
   _code_stack.push(vector<Instruction>());
   _cur_func = func_node;
   auto block = func_node->_body;

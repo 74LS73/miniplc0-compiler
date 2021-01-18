@@ -264,14 +264,14 @@ BlockStatNodePtr Analyser::analyseBlockStatement() {
   if (!next.has_value() || next.value().GetType() != TokenType::LEFT_BRACE) {
     throw AnalyserError({_current_pos, ErrorCode::ErrNeedBrace});
   }
-  _symbol_table_stack.pushNextScopeWithIndex();
+  _symbol_table_stack.pushNextScope();
   while (true) {
     next = nextToken();
     if (!next.has_value()) {
       throw AnalyserError({_current_pos, ErrorCode::ErrNeedBrace});
     }
     if (next.value().GetType() == TokenType::RIGHT_BRACE) {
-      _symbol_table_stack.popCurrentScopeWithIndex();
+      _symbol_table_stack.popCurrentScope();
       return node;
     }
     unreadToken();

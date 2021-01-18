@@ -20,9 +20,10 @@ class FuncNode : public Node {
   std::string _name;
   vector<DeclStatNodePtr> _params;
   TokenType _return_type;
-  int32_t _return_slots;
-  int32_t _param_slots;
-  int32_t _loc_slots;
+  int32_t _return_slots = 0;
+  int32_t _param_slots = 0;
+  vector<DeclStatNodePtr> _locs;
+  int32_t _loc_slots = 0;
   bool _is_std;
   bool _need_ret;
   int32_t _global_index;

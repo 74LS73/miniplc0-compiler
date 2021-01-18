@@ -382,7 +382,7 @@ IdentExprNodePtr Analyser::analyseIdentExpression() {
 
   // lhs->_type = var.value().type;
   node->_type = var->_type;
-  node->_id = var->_id;
+  node->_var = var;
   node->_vscope = var->_vscope;
   node->_const = var->_const;
   return node;

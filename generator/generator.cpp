@@ -74,7 +74,7 @@ void Generator::generateGetVariable(int id, VariableType type) {
   auto &_cur_block = _code_stack.top();
   switch (type) {
     case VariableType::LOCAL:
-      _cur_block.emplace_back(Instruction(ISA::LOCA, id - _cur_func->_param_slots));
+      _cur_block.emplace_back(Instruction(ISA::LOCA, id));
       break;
     case VariableType::GLOBAL:
       _cur_block.emplace_back(Instruction(ISA::GLOBA, id));
@@ -89,7 +89,7 @@ void Generator::generateLoadVariable(int id, VariableType type) {
   auto &_cur_block = _code_stack.top();
   switch (type) {
     case VariableType::LOCAL:
-      _cur_block.emplace_back(Instruction(ISA::LOCA, id - _cur_func->_param_slots));
+      _cur_block.emplace_back(Instruction(ISA::LOCA, id));
       break;
     case VariableType::GLOBAL:
       _cur_block.emplace_back(Instruction(ISA::GLOBA, id));

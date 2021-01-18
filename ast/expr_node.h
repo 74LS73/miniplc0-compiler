@@ -24,6 +24,7 @@ class IdentExprNode : public ExprNode {
   std::string _name;
   bool _const;
   int64_t _id;
+  NodePtr  _var;
   VariableType _vscope;
   IdentExprNode() : _vscope(VariableType::LOCAL) {
     _ntype = NodeType::IdentExprNode;

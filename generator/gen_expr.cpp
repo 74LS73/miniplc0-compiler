@@ -45,7 +45,8 @@ void Generator::generateExpr(ExprNodePtr expr) {
 }
 
 void Generator::generateAssignExpr(AssignExprNodePtr assign) {
-  generateGetVariable(assign->_lhs->_id, assign->_lhs->_vscope);
+  auto var = std::dynamic_pointer_cast<DeclStatNode>(assign->_lhs->_var);
+  generateGetVariable(var->_id, var->_vscope);
   generateExpr(assign->_rhs);
   generateStore();
 }
@@ -76,11 +77,11 @@ void Generator::generateCallExpr(CallExprNodePtr call_node) {
   for (auto &expr : call_node->_params) {
     generateExpr(expr);
   }
-  
+
   if (call_node->_is_std) {
     FuncNodePtr func = std::dynamic_pointer_cast<FuncNode>(call_node->_func);
     generateCallName(func->_global_index);
-    
+
   } else {
     auto func = std::dynamic_pointer_cast<FuncNode>(call_node->_func);
     generateCallFunction(func->_id);
@@ -92,6 +93,7 @@ void Generator::generateItemExpr(ItemExprNodePtr item_node) {
 }
 
 void Generator::generateIdentExpr(IdentExprNodePtr ident_node) {
-  generateLoadVariable(ident_node->_id, ident_node->_vscope);
+  auto var = std::dynamic_pointer_cast<DeclStatNode>(ident_node->_var);
+  generateLoadVariable(var->_id, var->_vscope);
 }
 }  // namespace miniplc0

@@ -361,6 +361,8 @@ ExprNodePtr Analyser::analyseLiteralExpression() {
     _symbol_table_stack.declareGlobalVariable(var);
 
     int64_t *val = new int64_t(var->_id);
+    node->_is_string = true;
+    node->_var = var;
     node->_type = TokenType::INT;
     node->_value = reinterpret_cast<int64_t *>(val);
   } else {

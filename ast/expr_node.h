@@ -24,7 +24,7 @@ class IdentExprNode : public ExprNode {
   std::string _name;
   bool _const;
   int64_t _id;
-  NodePtr  _var;
+  NodePtr _var;
   VariableType _vscope;
   IdentExprNode() : _vscope(VariableType::LOCAL) {
     _ntype = NodeType::IdentExprNode;
@@ -41,7 +41,9 @@ class AssignExprNode : public ExprNode {
 class ItemExprNode : public ExprNode {
  public:
   int64_t *_value;
-  ItemExprNode() { _ntype = NodeType::ItemExprNode; }
+  bool _is_string;
+  NodePtr _var;
+  ItemExprNode() : _is_string(false) { _ntype = NodeType::ItemExprNode; }
 };
 
 class CallExprNode : public ExprNode {

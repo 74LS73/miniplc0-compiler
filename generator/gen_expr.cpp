@@ -89,7 +89,12 @@ void Generator::generateCallExpr(CallExprNodePtr call_node) {
 }
 
 void Generator::generateItemExpr(ItemExprNodePtr item_node) {
-  generateLiteralValue(item_node->_value);
+  if (item_node->_is_string == true) {
+    auto var = std::dynamic_pointer_cast<DeclStatNode>(item_node->_var);
+    generateLiteralValue(&(var->_id));
+  } else {
+    generateLiteralValue(item_node->_value);
+  }
 }
 
 void Generator::generateIdentExpr(IdentExprNodePtr ident_node) {

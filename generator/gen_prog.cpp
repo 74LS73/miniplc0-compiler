@@ -21,9 +21,11 @@ void Generator::generateProgram(ProgNodePtr prog_node) {
   int global_index = 0;
   for (auto &var : prog_node->_globals->_vars) {
     printf("global_index is %d\n", global_index);
+    var.second->_id = global_index;
     printf("is_const: %d\n", var.second->_const);
     _Write(var.second->_const, 1);
     if (var.second->_type == TokenType::STRING_LITERAL) {
+      
       printf("value.count: %d\n", var.second->_name.size());
       _Write(var.second->_name.size(), 4);
       printf("value.item: %s\n", var.second->_name.c_str());

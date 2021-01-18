@@ -11,18 +11,29 @@ void Generator::generateProgram(ProgNodePtr prog_node) {
   printf("version: %x\n", prog_node->_version);
   _Write(prog_node->_version, 4);
 
-  printf("globals.count: %x\n",  prog_node->_globals->getVariableNumber() + prog_node->_globals->getFunctionNumber());
-  _Write(prog_node->_globals->getVariableNumber() + prog_node->_globals->getFunctionNumber(), 4);
-
+  printf("globals.count: %x\n", prog_node->_globals->getVariableNumber() +
+                                    prog_node->_globals->getFunctionNumber());
+  _Write(prog_node->_globals->getVariableNumber() +
+             prog_node->_globals->getFunctionNumber(),
+         4);
 
   int i = 0;
-  for (auto &var : prog_node->_vars) {
-    printf("is_const: %d\n", var->_const);
-    _Write(var->_const, 1);
-    printf("value.count: %d\n", 8);
-    _Write(8, 4);
-    printf("value.item: %d\n", 0);
-    _Write(0, 8);
+  for (auto &var : prog_node->_globals->_vars) {
+    printf("is_const: %d\n", var.second->_const);
+    _Write(var.second->_const, 1);
+    if (var.second->_type == TokenType::STRING_LITERAL) {
+      printf("value.count: %d\n", var.second->_name.size());
+      _Write(var.second->_name.size(), 4);
+      printf("value.item: %s\n", var.second->_name.c_str());
+      for (auto &c : var.second->_name) {
+        _Write(c, 1);
+      }
+    } else {
+      printf("value.count: %d\n", 8);
+      _Write(8, 4);
+      printf("value.item: %d\n", 0);
+      _Write(0, 8);
+    }
     i++;
   }
 

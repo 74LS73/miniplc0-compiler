@@ -262,6 +262,7 @@ ExprNodePtr Analyser::analyseCallExpression() {
     auto param = analyseExpression();
     if (param->_type != fun_param->_type) {
       // TODO
+      printf("%d %d\n", param->_type, fun_param->_type);
       throw ErrorCode::ErrInvalidAssignment;
     }
     node->_params.emplace_back(param);
@@ -307,6 +308,18 @@ ExprNodePtr Analyser::analyseLiteralExpression() {
 
   } else if (next.value().GetType() == TokenType::CHAR_LITERAL) {
   } else if (next.value().GetType() == TokenType::STRING_LITERAL) {
+    printf("asdfafd\n");
+    auto var = std::make_shared<DeclStatNode>();
+    auto name = next->GetValueString();
+    name = name.substr(1, name.size() - 2);
+    var->_name = name;
+    var->_const = true;
+    var->_type = next->GetType();
+    _symbol_table_stack.declareGlobalVariable(var);
+
+    int64_t *val = new int64_t(var->_id);
+    node->_type = TokenType::INT;
+    node->_value = reinterpret_cast<int64_t *>(val);
   } else {
     throw ErrorCode::ErrRecognized;
   }

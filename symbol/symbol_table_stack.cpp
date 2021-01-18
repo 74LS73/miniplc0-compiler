@@ -43,8 +43,6 @@ SymbolTable &SymbolTableStack::getGlobalTable() {
   return _symbol_table_stack[_global_scope_level];
 }
 
-
-
 int SymbolTableStack::getCurrentScopeLevel() { return _cur_scope_level; }
 
 // 是否被声明过
@@ -71,7 +69,7 @@ int64_t SymbolTableStack::declareVariable(DeclStatNodePtr item) {
 }
 
 int64_t SymbolTableStack::declareGlobalVariable(DeclStatNodePtr item) {
-  getCurrentTable().addVariable(item);
+  _symbol_table_stack[0].addVariable(item);
   return item->_id;
 }
 
@@ -100,6 +98,5 @@ FuncNodePtr SymbolTableStack::getFunctionByName(string s) {
 int SymbolTableStack::getCurrentVariableNumber() {
   return _symbol_table_stack[_cur_scope_level].getVariableNumber();
 }
-
 
 }  // namespace miniplc0

@@ -98,7 +98,6 @@ void Generator::generateIfStat(IfStatNodePtr if_node) {
   if (if_node->_else_block != nullptr) {
     _code_stack.push(vector<Instruction>());
     generateStat(if_node->_else_block);
-    
 
     auto else_block = _code_stack.top();
     _code_stack.pop();
@@ -136,6 +135,8 @@ void Generator::generateWhileStat(WhileStatNodePtr while_node) {
   }
 
   generateBr(-expr_block.size());
+
+  fixBreakAndContinue();
 
   auto while_block = _code_stack.top();
   _code_stack.pop();

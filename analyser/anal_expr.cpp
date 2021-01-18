@@ -173,7 +173,7 @@ ExprNodePtr Analyser::analyseOperatorExpression(OpExprNodePtr _expr) {
         node->_operator = current_op.GetType();
         node->_rhs = rhs;
         return node;
-      } else if (next.value() < current_op) {
+      } else if (next.value() <= current_op) {
         // * 遇上 + ，跳出，结合lhr和rhs
         unreadToken();
         break;

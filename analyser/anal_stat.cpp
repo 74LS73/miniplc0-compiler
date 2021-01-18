@@ -227,28 +227,21 @@ StatNodePtr Analyser::analyseReturnStatement() {
   }
   auto node = std::make_shared<ReturnStatNode>();
 
-printf("analyse return\n");
-  auto func = _symbol_table_stack.getCurrentTable().getCurrentFunction();
+  printf("analyse return\n");
+  auto &cur_table = _symbol_table_stack.getCurrentTable();
+  auto func = cur_table.getCurrentFunction();
 
   if (func->_return_slots) {
     node->_expr = analyseExpression();
   }
-  
+
   next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::SEMICOLON) {
     throw AnalyserError({_current_pos, ErrorCode::ErrNeedSemicolon});
   }
 
-  auto return_decl = std::make_shared<DeclStatNode>();
-  return_decl->_name = "#return";
-  return_decl->_vscope = VariableType::PARAM;
-  if (_symbol_table_stack.isLocalVariableDeclared("#return")) {
-    node->_id = _symbol_table_stack.getVariableByName("#return")->_id;
-    printf("#return is %d\n", node->_id);
-  } else {
-    node->_id = _symbol_table_stack.declareVariable(return_decl);
-    printf("#return is %d\n", return_decl->_id);
-  }
+  node->_id =
+      _symbol_table_stack.getCurrentTable().getCurrentFunction()->_param_slots;
   return node;
 }
 

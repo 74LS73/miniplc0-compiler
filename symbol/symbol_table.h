@@ -40,7 +40,7 @@ class SymbolTable final {
   FuncNodePtr getFunctionByName(string &s);
 
   FuncNodePtr getCurrentFunction() { return _function; }
-  FuncNodePtr setCurrentFunction(FuncNodePtr func) { _function = func; }
+  void setCurrentFunction(FuncNodePtr func) { _function = func; }
 
   // 是否被声明过
   bool isDeclared(const string &);

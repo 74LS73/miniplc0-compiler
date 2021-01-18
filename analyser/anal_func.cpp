@@ -27,7 +27,8 @@ FuncNodePtr Analyser::analyseFunction() {
   }
 
   _symbol_table_stack.pushNextScope();
-  _symbol_table_stack.getCurrentTable().setCurrentFunction(node);
+  auto &cur_table = _symbol_table_stack.getCurrentTable();
+  cur_table.setCurrentFunction(node);
 
   // 判断一下是否有参数
   next = nextToken();
@@ -70,7 +71,6 @@ ARROW:
   _symbol_table_stack.declareFunction(node);
 
   // body
-  printf("analyse function\n");
   auto body = analyseBlockStatement();
   node->_body = body;
 

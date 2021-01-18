@@ -152,7 +152,7 @@ void Generator::generateContinueStat(ContinueStatNodePtr) {
 
 void Generator::generateReturnStat(ReturnStatNodePtr return_node) {
   if (return_node->_expr != nullptr) {
-    generateGetVariable(return_node->_id, VariableType::PARAM);
+    generateGetVariable(-1, VariableType::PARAM);
     generateExpr(return_node->_expr);
     generateStore();
   }

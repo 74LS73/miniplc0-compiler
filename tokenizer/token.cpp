@@ -30,6 +30,10 @@ bool operator<(const Token &a, const Token &b) {
   return getOperatorPriority(a.GetType()) < getOperatorPriority(b.GetType());
 }
 
+bool operator<=(const Token &a, const Token &b) {
+  return getOperatorPriority(a.GetType()) <= getOperatorPriority(b.GetType());
+}
+
 std::string Token::Print() {
   std::string name;
   switch (_type) {

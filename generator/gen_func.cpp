@@ -23,6 +23,7 @@ void Generator::generateFunction(FuncNodePtr func_node) {
   _code_stack.push(vector<Instruction>());
   _cur_func = func_node;
   auto block = func_node->_body;
+  
   generateBlockStat(block);
   if (func_node->_need_ret) {
     generateRet();

@@ -46,9 +46,12 @@ ProgNodePtr Analyser::analyseProgram() {
   // call
   auto call_main = std::make_shared<ExprStatNode>();
   auto call_expr = std::make_shared<CallExprNode>();
+  auto main_func = _symbol_table_stack.getFunctionByName("main");
   call_expr->_name = "main";
-  call_expr->_id = _symbol_table_stack.getFunctionByName("main")->_id;
-  call_expr->_return_slots = _symbol_table_stack.getFunctionByName("main")->_return_slots;
+  call_expr->_id = main_func->_id;
+  call_expr->_return_slots = main_func->_return_slots;
+  call_expr->_func = main_func;
+  call_expr->_is_std = false;
   call_main->_expr = call_expr;
   _start->_body->_stats.emplace_back(call_main);
   node->_globals = &_symbol_table_stack.getGlobalTable();

@@ -145,6 +145,7 @@ inline void swap(Token &lhs, Token &rhs) {
 // 所以实在是丑陋 -_-||
 bool operator<(const Token &, const TokenType &);
 bool operator<(const Token &, const Token &);
+bool operator<=(const Token &, const Token &);
 
 inline bool Token::isTokenAType() {
   return _type >= TokenType::INT && _type <= TokenType::VOID;

@@ -258,12 +258,13 @@ BlockStatNodePtr Analyser::analyseBlockStatement() {
     if (!next.has_value()) {
       throw AnalyserError({_current_pos, ErrorCode::ErrNeedBrace});
     }
-    if (next.has_value() && next.value().GetType() == TokenType::RIGHT_BRACE) {
+    if (next.value().GetType() == TokenType::RIGHT_BRACE) {
       // _symbol_table_stack.popCurrentScopeWithIndex();
       return node;
     }
     unreadToken();
     auto stat = analyseStatement();
+    printf("%d\n",123);
     node->_stats.emplace_back(stat);
   }
 

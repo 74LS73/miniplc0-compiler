@@ -20,7 +20,8 @@ optional<Token> Analyser::nextToken() {
   // 所以我们选择 _tokens[0..._offset-1] 的 EndPos 作为当前位置
   _current_pos = _tokens[_offset].GetEndPos();
   // 自动忽略comment
-  while (_tokens[_offset].GetType() == TokenType::COMMENT) ++_offset;
+  while (_offset < _tokens.size() && _tokens[_offset].GetType() == TokenType::COMMENT) ++_offset;
+  if (_offset == _tokens.size()) return {};
   return _tokens[_offset++];
 }
 

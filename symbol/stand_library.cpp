@@ -109,7 +109,6 @@ FuncNodePtr SymbolTable::getStandardFunctionByName(const std::string &s) {
   else if (s == "putstr") func = getPutstrFunction();
   else if (s == "putln") func = getPutlnFunction();
   else throw ErrorCode::ErrNeedDeclareSymbol;
-  std::cout << "fitst " << func->_name << std::endl;
   addFunction(func);
   return func;
 }

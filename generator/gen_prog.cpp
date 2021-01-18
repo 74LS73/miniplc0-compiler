@@ -1,6 +1,7 @@
+#include <algorithm>
+
 #include "ast/ast.h"
 #include "generator.h"
-
 namespace miniplc0 {
 
 void Generator::generateProgram(ProgNodePtr prog_node) {
@@ -37,12 +38,12 @@ void Generator::generateProgram(ProgNodePtr prog_node) {
     }
     global_index++;
   }
-  
+
   int func_index = 0;
   for (auto &func : prog_node->_globals->getFuncs()) {
     func.second->_global_index = global_index;
     if (!func.second->_is_std) {
-      func.second->_id = func_index ++;
+      func.second->_id = func_index++;
     }
     printf("global_index is %d\n", func.second->_global_index);
     printf("is_const: %d\n", 0);
@@ -58,6 +59,8 @@ void Generator::generateProgram(ProgNodePtr prog_node) {
 
   printf("functions.count: %x\n", prog_node->_funcs.size());
   _Write(prog_node->_funcs.size(), 4);
+
+  std::sort(prog_node->_funcs.begin(), prog_node->_funcs.end(), [](FuncNodePtr &a, FuncNodePtr &b){ return a->_id < b ->_id; });
 
   for (auto &func : prog_node->_funcs) {
     generateFunction(func);

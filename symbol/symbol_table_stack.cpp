@@ -65,8 +65,10 @@ bool SymbolTableStack::isGlobalVariableDeclared(const string &token_name) {
 
 int64_t SymbolTableStack::declareVariable(DeclStatNodePtr item) {
   getCurrentTable().addVariable(item);
-  _function->_loc_slots++;
-  _function->_locs.emplace_back(item);
+  if (item->_vscope != VariableType::PARAM) {
+    _function->_loc_slots++;
+    _function->_locs.emplace_back(item);
+  }
   return item->_id;
 }
 

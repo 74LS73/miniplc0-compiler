@@ -41,6 +41,7 @@ class Generator final {
   void generateBreak();
   void generateContinue();
   void fixBreakAndContinue();
+  bool isReturned();
 
  private:
   std::ostream *_output;

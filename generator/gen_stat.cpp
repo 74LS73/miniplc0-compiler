@@ -86,11 +86,20 @@ void Generator::generateIfStat(IfStatNodePtr if_node) {
 
   _code_stack.push(vector<Instruction>());
   generateBlockStat(if_node->_if_block);
+  // printf("========  if  ========\n");
+  // show();
+  // printf("========  End  ========\n");
+  bool _is_return = isReturned();
   auto if_block = _code_stack.top();
   _code_stack.pop();
   auto &expr_block = _code_stack.top();
   generateBrTrue(1);
-  generateBr(if_block.size() + 1);
+  if (!_is_return) {
+    generateBr(if_block.size() + 1);
+  } else{
+    generateBr(if_block.size());
+  }
+
   for (auto &isa : if_block) {
     expr_block.emplace_back(isa);
   }
@@ -101,12 +110,14 @@ void Generator::generateIfStat(IfStatNodePtr if_node) {
 
     auto else_block = _code_stack.top();
     _code_stack.pop();
-    generateBr(else_block.size() + 1);
+    if (!_is_return)
+      generateBr(else_block.size() + 1);
     auto &base_block = _code_stack.top();
     for (auto &isa : else_block) {
       base_block.emplace_back(isa);
     }
   }
+
   generateBr(0);
 
   auto block = _code_stack.top();

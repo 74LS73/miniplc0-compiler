@@ -80,7 +80,8 @@ void Generator::generateGetVariable(int id, VariableType type) {
       _cur_block.emplace_back(Instruction(ISA::GLOBA, id));
       break;
     case VariableType::PARAM:
-      _cur_block.emplace_back(Instruction(ISA::ARGA, id + _cur_func->_return_slots));
+      _cur_block.emplace_back(
+          Instruction(ISA::ARGA, id + _cur_func->_return_slots));
       break;
   }
 }
@@ -95,7 +96,8 @@ void Generator::generateLoadVariable(int id, VariableType type) {
       _cur_block.emplace_back(Instruction(ISA::GLOBA, id));
       break;
     case VariableType::PARAM:
-      _cur_block.emplace_back(Instruction(ISA::ARGA, id + _cur_func->_return_slots));
+      _cur_block.emplace_back(
+          Instruction(ISA::ARGA, id + _cur_func->_return_slots));
       break;
   }
   _cur_block.emplace_back(Instruction(ISA::LOAD_64));
@@ -162,6 +164,16 @@ void Generator::fixBreakAndContinue() {
     }
     pos++;
   }
+}
+
+bool Generator::isReturned() {
+  auto &_cur_block = _code_stack.top();
+  for (auto &ins : _cur_block) {
+    if (ins.GetISA() == ISA::RET) {
+      return true;
+    }
+  }
+  return false;
 }
 
 std::string ISA2Str(ISA isa) {

@@ -67,7 +67,9 @@ void Generator::generateProgram(ProgNodePtr prog_node) {
               return a->_id < b->_id;
             });
 
+  int func_id = 0;
   for (auto &func : prog_node->_funcs) {
+    func->_id = func_id++;
     generateFunction(func);
   }
 

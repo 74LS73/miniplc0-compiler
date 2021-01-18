@@ -141,12 +141,12 @@ void Generator::generateBrTrue(int64_t num) {
 
 void Generator::generateBreak() {
   auto &_cur_block = _code_stack.top();
-  _cur_block.emplace_back(Instruction(ISA::BREAK_FAKE));
+  _cur_block.emplace_back(Instruction(ISA::BREAK_FAKE, 0));
 }
 
 void Generator::generateContinue() {
   auto &_cur_block = _code_stack.top();
-  _cur_block.emplace_back(Instruction(ISA::CONTINUE_FAKE));
+  _cur_block.emplace_back(Instruction(ISA::CONTINUE_FAKE, 0));
 }
 
 void Generator::fixBreakAndContinue() {

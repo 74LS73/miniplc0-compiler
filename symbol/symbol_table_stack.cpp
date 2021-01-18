@@ -64,6 +64,7 @@ bool SymbolTableStack::isGlobalVariableDeclared(const string &token_name) {
 }
 
 int64_t SymbolTableStack::declareVariable(DeclStatNodePtr item) {
+  _function->_loc_slots++;
   getCurrentTable().addVariable(item);
   return item->_id;
 }

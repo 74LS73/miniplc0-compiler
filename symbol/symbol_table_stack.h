@@ -20,6 +20,7 @@ class SymbolTableStack final {
   std::vector<SymbolTable> _symbol_table_stack;
   int _cur_scope_level = 0;
   const int _global_scope_level = 0;
+  FuncNodePtr _function = nullptr;
 
  public:
   void pushNextScope();
@@ -43,9 +44,12 @@ class SymbolTableStack final {
   SymbolTable &getGlobalTable();
   SymbolTable &getCurrentTable();
 
+  FuncNodePtr getCurrentFunction() { return _function; }
+  void setCurrentFunction(FuncNodePtr func) { _function = func; }
+
  private:
   // 返回值和返回引用的区别了解一下
-  
+
   // 检查是否为标准库函数
   // FuncNodePtr getStandardFunctionByName(const std::string &);
 };

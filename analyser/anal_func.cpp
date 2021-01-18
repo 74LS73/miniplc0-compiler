@@ -27,8 +27,7 @@ FuncNodePtr Analyser::analyseFunction() {
   }
 
   _symbol_table_stack.pushNextScope();
-  auto &cur_table = _symbol_table_stack.getCurrentTable();
-  cur_table.setCurrentFunction(node);
+  _symbol_table_stack.setCurrentFunction(node);
 
   // 判断一下是否有参数
   next = nextToken();
@@ -73,8 +72,6 @@ ARROW:
   // body
   auto body = analyseBlockStatement();
   node->_body = body;
-
-  node->_loc_slots = _symbol_table_stack.getCurrentVariableNumber();
 
   _symbol_table_stack.popCurrentScope();
 

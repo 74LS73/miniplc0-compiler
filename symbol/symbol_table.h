@@ -25,7 +25,7 @@ class SymbolTable final {
   template <typename T>
   void _add(std::map<string, T> &, string &, T, int64_t &);
   FuncNodePtr getStandardFunctionByName(const std::string &s);
-  FuncNodePtr _function;
+  
 
  public:
   std::map<std::string, DeclStatNodePtr> getVars() { return _vars; }
@@ -39,8 +39,7 @@ class SymbolTable final {
   DeclStatNodePtr getVariableByName(string &s);
   FuncNodePtr getFunctionByName(string &s);
 
-  FuncNodePtr getCurrentFunction() { return _function; }
-  void setCurrentFunction(FuncNodePtr func) { _function = func; }
+  
 
   // 是否被声明过
   bool isDeclared(const string &);

@@ -126,8 +126,11 @@ DeclStatNodePtr Analyser::analyseDeclStatement(VariableType vscope) {
   if (!next.has_value() || next.value().GetType() != TokenType::SEMICOLON)
     throw AnalyserError({_current_pos, ErrorCode::ErrNeedSemicolon});
 
-  _symbol_table_stack.declareVariable(node);
-  // ++func.local_slots;
+  if (_symbol_table_stack.getCurrentFunction() == nullptr) {
+    _symbol_table_stack.declareGlobalVariable(node);
+  } else {
+    _symbol_table_stack.declareVariable(node);
+  }
   return node;
 }
 
@@ -186,7 +189,7 @@ StatNodePtr Analyser::analyseWhileStatement() {
 
   auto block = analyseBlockStatement();
   node->_block = std::dynamic_pointer_cast<BlockStatNode>(block);
-  _is_in_while  = _old_is_in_wihle;
+  _is_in_while = _old_is_in_wihle;
   return node;
 }
 
@@ -211,7 +214,7 @@ StatNodePtr Analyser::analyseBreakStatement() {
 
 // continue_stmt -> 'continue'  ';'
 StatNodePtr Analyser::analyseContinueStatement() {
-    if (!_is_in_while) {
+  if (!_is_in_while) {
     throw AnalyserError({_current_pos, ErrorCode::ErrRecognized});
   }
   auto next = nextToken();
@@ -236,8 +239,7 @@ StatNodePtr Analyser::analyseReturnStatement() {
   auto node = std::make_shared<ReturnStatNode>();
 
   printf("analyse return\n");
-  auto &cur_table = _symbol_table_stack.getCurrentTable();
-  auto func = cur_table.getCurrentFunction();
+  auto func = _symbol_table_stack.getCurrentFunction();
 
   if (func->_return_slots) {
     node->_expr = analyseExpression();
@@ -251,8 +253,7 @@ StatNodePtr Analyser::analyseReturnStatement() {
     throw AnalyserError({_current_pos, ErrorCode::ErrNeedSemicolon});
   }
 
-  node->_id =
-      _symbol_table_stack.getCurrentTable().getCurrentFunction()->_param_slots;
+  node->_id = _symbol_table_stack.getCurrentFunction()->_param_slots;
   return node;
 }
 
@@ -263,14 +264,14 @@ BlockStatNodePtr Analyser::analyseBlockStatement() {
   if (!next.has_value() || next.value().GetType() != TokenType::LEFT_BRACE) {
     throw AnalyserError({_current_pos, ErrorCode::ErrNeedBrace});
   }
-  // _symbol_table_stack.pushNextScopeWithIndex();
+  _symbol_table_stack.pushNextScopeWithIndex();
   while (true) {
     next = nextToken();
     if (!next.has_value()) {
       throw AnalyserError({_current_pos, ErrorCode::ErrNeedBrace});
     }
     if (next.value().GetType() == TokenType::RIGHT_BRACE) {
-      // _symbol_table_stack.popCurrentScopeWithIndex();
+      _symbol_table_stack.popCurrentScopeWithIndex();
       return node;
     }
     unreadToken();

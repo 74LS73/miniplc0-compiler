@@ -173,6 +173,8 @@ StatNodePtr Analyser::analyseIfStatement() {
 // //                    ^~~~ ^~~~~~~~~~while_block
 // //                     condition
 StatNodePtr Analyser::analyseWhileStatement() {
+  bool _old_is_in_wihle = _is_in_while;
+  _is_in_while = true;
   auto node = std::make_shared<WhileStatNode>();
   auto next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::WHILE) {
@@ -184,12 +186,15 @@ StatNodePtr Analyser::analyseWhileStatement() {
 
   auto block = analyseBlockStatement();
   node->_block = std::dynamic_pointer_cast<BlockStatNode>(block);
-
+  _is_in_while  = _old_is_in_wihle;
   return node;
 }
 
 // Break_stmt -> 'break'  ';'
 StatNodePtr Analyser::analyseBreakStatement() {
+  if (!_is_in_while) {
+    throw AnalyserError({_current_pos, ErrorCode::ErrRecognized});
+  }
   auto next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::BREAK) {
     throw AnalyserError({_current_pos, ErrorCode::ErrNeedReturn});
@@ -206,6 +211,9 @@ StatNodePtr Analyser::analyseBreakStatement() {
 
 // continue_stmt -> 'continue'  ';'
 StatNodePtr Analyser::analyseContinueStatement() {
+    if (!_is_in_while) {
+    throw AnalyserError({_current_pos, ErrorCode::ErrRecognized});
+  }
   auto next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::CONTINUE) {
     throw AnalyserError({_current_pos, ErrorCode::ErrNeedReturn});
@@ -233,10 +241,9 @@ StatNodePtr Analyser::analyseReturnStatement() {
 
   if (func->_return_slots) {
     node->_expr = analyseExpression();
-  }
-
-  if (node->_expr->_type != func->_return_type) {
-    throw AnalyserError({_current_pos, ErrorCode::ErrInvalidAssignment});
+    if (node->_expr->_type != func->_return_type) {
+      throw AnalyserError({_current_pos, ErrorCode::ErrInvalidAssignment});
+    }
   }
 
   next = nextToken();

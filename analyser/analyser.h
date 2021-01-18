@@ -114,6 +114,7 @@ class Analyser final {
   std::size_t _offset;
   std::vector<Instruction> _instructions;
   std::pair<uint64_t, uint64_t> _current_pos;
+  bool _is_in_while = false;
 };
 
 }  // namespace miniplc0

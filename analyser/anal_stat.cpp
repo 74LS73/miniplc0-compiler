@@ -235,6 +235,10 @@ StatNodePtr Analyser::analyseReturnStatement() {
     node->_expr = analyseExpression();
   }
 
+  if (node->_expr->_type != func->_return_type) {
+    throw AnalyserError({_current_pos, ErrorCode::ErrInvalidAssignment});
+  }
+
   next = nextToken();
   if (!next.has_value() || next.value().GetType() != TokenType::SEMICOLON) {
     throw AnalyserError({_current_pos, ErrorCode::ErrNeedSemicolon});

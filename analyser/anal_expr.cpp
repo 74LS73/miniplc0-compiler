@@ -310,7 +310,22 @@ ExprNodePtr Analyser::analyseLiteralExpression() {
     auto var = std::make_shared<DeclStatNode>();
     auto name = next->GetValueString();
     auto c = name.substr(1, name.size() - 2);
-
+    if (c.size() == 2) {
+      switch (c[1]) {
+        case 'n': {
+          c[0] = '\n';
+          break;
+        }
+        case 't': {
+          c[0] = '\t';
+          break;
+        }
+        case 'r': {
+          c[0] = '\r';
+          break;
+        }
+      }
+    }
     int64_t *val = new int64_t(c[0]);
     node->_type = TokenType::INT;
     node->_value = reinterpret_cast<int64_t *>(val);

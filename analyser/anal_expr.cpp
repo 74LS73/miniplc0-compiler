@@ -307,6 +307,13 @@ ExprNodePtr Analyser::analyseLiteralExpression() {
     // lhs->p_code_gen.generateDouble(val);
 
   } else if (next.value().GetType() == TokenType::CHAR_LITERAL) {
+    auto var = std::make_shared<DeclStatNode>();
+    auto name = next->GetValueString();
+    auto c = name.substr(1, name.size() - 2);
+
+    int64_t *val = new int64_t(c[0]);
+    node->_type = TokenType::INT;
+    node->_value = reinterpret_cast<int64_t *>(val);
   } else if (next.value().GetType() == TokenType::STRING_LITERAL) {
     auto var = std::make_shared<DeclStatNode>();
     auto name = next->GetValueString();

@@ -98,16 +98,17 @@ void Generator::generateIfStat(IfStatNodePtr if_node) {
   if (if_node->_else_block != nullptr) {
     _code_stack.push(vector<Instruction>());
     generateStat(if_node->_else_block);
-    generateBr(0);
+    
 
     auto else_block = _code_stack.top();
     _code_stack.pop();
-    generateBr(else_block.size());
+    generateBr(else_block.size() + 1);
     auto &base_block = _code_stack.top();
     for (auto &isa : else_block) {
       base_block.emplace_back(isa);
     }
   }
+  generateBr(0);
 
   auto block = _code_stack.top();
   _code_stack.pop();

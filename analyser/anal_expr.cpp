@@ -308,11 +308,32 @@ ExprNodePtr Analyser::analyseLiteralExpression() {
 
   } else if (next.value().GetType() == TokenType::CHAR_LITERAL) {
   } else if (next.value().GetType() == TokenType::STRING_LITERAL) {
-    printf("asdfafd\n");
     auto var = std::make_shared<DeclStatNode>();
     auto name = next->GetValueString();
     name = name.substr(1, name.size() - 2);
-    var->_name = name;
+    string after_name = "";
+    for (int i = 0; i < name.size(); i++) {
+      if (name[i] == '\\') {
+        if (i + 1 >= name.size())
+          continue;
+        else if (name[i + 1] == '\"')
+          after_name += '"';
+        else if (name[i + 1] == '\\')
+          after_name += '\\';
+        else if (name[i + 1] == '\'')
+          after_name += '\'';
+        else if (name[i + 1] == 'n')
+          after_name += '\n';
+        else {
+          after_name += name[i];
+          continue;
+        }
+        i += 1;
+        continue;
+      }
+      after_name += name[i];
+    }
+    var->_name = after_name;
     var->_const = true;
     var->_type = next->GetType();
     _symbol_table_stack.declareGlobalVariable(var);

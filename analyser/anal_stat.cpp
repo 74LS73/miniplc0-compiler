@@ -264,7 +264,6 @@ BlockStatNodePtr Analyser::analyseBlockStatement() {
     }
     unreadToken();
     auto stat = analyseStatement();
-    printf("%d\n",123);
     node->_stats.emplace_back(stat);
   }
 

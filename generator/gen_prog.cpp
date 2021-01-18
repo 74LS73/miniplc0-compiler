@@ -60,7 +60,12 @@ void Generator::generateProgram(ProgNodePtr prog_node) {
   printf("functions.count: %x\n", prog_node->_funcs.size());
   _Write(prog_node->_funcs.size(), 4);
 
-  std::sort(prog_node->_funcs.begin(), prog_node->_funcs.end(), [](FuncNodePtr &a, FuncNodePtr &b){ return a->_id < b ->_id; });
+  std::sort(prog_node->_funcs.begin(), prog_node->_funcs.end(),
+            [](FuncNodePtr &a, FuncNodePtr &b) {
+              if (a->_name == "_start") return true;
+              if (b->_name == "_start") return false;
+              return a->_id < b->_id;
+            });
 
   for (auto &func : prog_node->_funcs) {
     generateFunction(func);
